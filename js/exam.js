@@ -124,13 +124,13 @@
         '<details><summary>' + tt('x_tips') + ' (' + ex.tips.length + ')</summary><ol class="tips">' + ex.tips.map(x => '<li>' + esc(x) + '</li>').join('') + '</ol></details>' +
         '<p class="mute small">' + tt('x_mock_d', { n, m: ex.min }) + '</p>' +
         (past.length ? '<p class="mute small">' + tt('x_past') + ' ' + past.map(e => Math.round(e.r / e.n * 100) + '%').join(' · ') + '</p>' : '') +
-        '<button class="btn primary" data-act="xstart" data-id="' + id + '">' + tt(s.exam && s.exam.id === id ? 'resume' : 'x_start') + '</button></section>';
+        '<div class="row"><button class="btn primary" data-act="xstart" data-id="' + id + '">' + tt(s.exam && s.exam.id === id ? 'resume' : 'x_start') + '</button>' + (s.exam && s.exam.id === id ? '<button class="btn danger" data-act="xquit">' + tt('x_quit') + '</button>' : '') + '</div></section>';
     }).join('') + '<p class="hint">' + tt('x_official') + '</p>';
   };
 
   function run(ex) {
     const st = S().exam, items = flat(ex), it = items[st.i], n = items.length, last = st.i === n - 1;
-    let h = '<div class="sess-h"><button class="x" data-act="go" data-to="exam">✕</button><div class="bar"><i style="width:' + Math.round((st.i + 1) / n * 100) + '%"></i></div><small id="xclock" class="clock">' + clock(st.left) + '</small></div>' +
+    let h = '<div class="sess-h"><button class="x" data-act="xquit" aria-label="quit">✕</button><div class="bar"><i style="width:' + Math.round((st.i + 1) / n * 100) + '%"></i></div><small id="xclock" class="clock">' + clock(st.left) + '</small></div>' +
       '<small class="eyebrow">' + ex.name + ' · ' + bi(it.sec) + ' · ' + (st.i + 1) + '/' + n + '</small><div class="qcard">';
     if (it.open) {
       h += '<p lang="fr" class="xq">' + esc(it.q) + '</p>';
@@ -164,6 +164,17 @@
     if (!s.exam || s.exam.id !== d.id) s.exam = { id: d.id, i: 0, ans: {}, txt: {}, plays: {}, left: X[d.id].min * 60000 };
     FR.save(); FR.go('exam/run');
   };
+  // Quitting asks first: the answers and the timer are thrown away.
+  A.xquit = () => {
+    const st = S().exam; if (!st) { FR.go('exam'); return; }
+    const done = Object.keys(st.ans).length + Object.keys(st.txt).length;
+    FR.sheet('<h3>' + tt('x_quit_t') + '</h3><p>' + tt('x_quit_d', { n: done }) + '</p><div class="col">' +
+      '<button class="btn primary" data-act="closesheet">' + tt('x_keep') + '</button>' +
+      '<button class="btn danger" data-act="xdiscard">' + tt('x_quit_yes') + '</button>' +
+      '<button class="link mute" data-act="xleave">' + tt('x_leave') + '</button></div>');
+  };
+  A.xdiscard = () => { clearInterval(timer); if (FR.canSpeak()) speechSynthesis.cancel(); S().exam = null; FR.save(); FR.closeSheet(); FR.toast(tt('x_quit_done')); FR.go('exam'); };
+  A.xleave = () => { FR.closeSheet(); FR.go('exam'); };
   A.xpick = d => { const st = S().exam; if (!st) return; st.ans[st.i] = +d.i; FR.save(); FR.refresh(); };
   A.xnav = d => { const st = S().exam; if (!st) return; st.i = Math.max(0, Math.min(flat(X[st.id]).length - 1, st.i + +d.d)); FR.save(); FR.refresh(true); };
   A.xplay = () => { const st = S().exam, it = flat(X[st.id])[st.i]; if ((st.plays[st.i] || 0) >= 2) { FR.toast(tt('x_noplays')); return; } st.plays[st.i] = (st.plays[st.i] || 0) + 1; FR.save(); FR.refresh(); FR.speak(it.a); };
@@ -179,6 +190,7 @@
     clearInterval(timer); if (FR.canSpeak()) speechSynthesis.cancel();
     FR.go('exam/result');
     E.reward(30 + r * 3, { k: 'exam', ti: [ex.name + ' mock exam', 'Examen blanc ' + ex.name], r, n });
+    setTimeout(() => FR.cheer(n ? r / n : 0, 0, [ex.name + ' mock exam', 'Examen blanc ' + ex.name]), 350);
   };
   AF.exam = p => {
     clearInterval(timer);

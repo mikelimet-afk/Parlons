@@ -9,7 +9,14 @@
   FR.lessons = [];
   FR.lessonBy = {};
   FR.COURSE.forEach((ch, ci) => ch.lessons.forEach(l => { l.ch = ch; l.ci = ci; FR.lessons.push(l); FR.lessonBy[l.id] = l; }));
-  E.lw = id => FR.words.filter(w => w.topic === id);
+  // A lesson's words: dictionary entries tagged with the lesson, plus the extra headwords listed for it.
+  const lwCache = {};
+  E.lw = id => lwCache[id] || (lwCache[id] = (() => {
+    const l = FR.lessonBy && FR.lessonBy[id], more = ((l && l.more) || (FR.LESSON_MORE || {})[id] || '').split(',').map(x => x.trim()).filter(Boolean);
+    const out = FR.words.filter(w => w.topic === id);
+    more.forEach(m => { const w = FR.wordBy[m]; if (w && !out.includes(w)) out.push(w); });
+    return out;
+  })());
   E.locked = w => w.topic === 'bonus' && !S().bonus.includes(w.fr);
 
   // ---------- pacing ----------
@@ -30,7 +37,7 @@
   E.day = (d = FR.dayStr()) => S().days[d] || (S().days[d] = { xp: 0, r: 0, w: 0, n: 0, ms: 0 });
 
   // ---------- progress helpers ----------
-  E.chUnlocked = ci => ci === 0 || !!S().chapters[FR.COURSE[ci - 1].id];
+  E.chUnlocked = ci => ci === 0 || (FR.master && FR.master.on) || !!S().chapters[FR.COURSE[ci - 1].id];
   E.chLessonsDone = ch => ch.lessons.every(l => S().lessons[l.id]);
   E.nextLesson = () => {
     for (let ci = 0; ci < FR.COURSE.length; ci++) {
@@ -42,7 +49,7 @@
     }
     return null;
   };
-  E.spacingLeft = () => Math.max(0, S().lastNewAt + S().settings.spacing * 60000 - Date.now());
+  E.spacingLeft = () => FR.master && FR.master.on ? 0 : Math.max(0, S().lastNewAt + S().settings.spacing * 60000 - Date.now());
   E.due = () => { const now = Date.now(), it = S().items; return Object.keys(it).filter(k => it[k].d <= now && E.fromKey(k, true)).sort((a, b) => it[a].d - it[b].d); };
   E.stats = () => {
     const s = S(), it = s.items; let learned = 0, mastered = 0, xp = 0, r = 0, w = 0;
@@ -88,8 +95,30 @@
   };
   const glue = s => s.replace(/ ([?!:;])/g, ' $1');
   E.qBuild = (l, i) => { const f = glue(l.s[i][0]); return { type: 'build', k: 'b:' + l.id + ':' + i, L: l.id, sk: 'order', lab: 'q_build', term: l.s[i][1], tl: 'en', answer: f, tiles: FR.shuffle(f.split(' ')), say: l.s[i][0] }; };
+  // Checks a typed answer. Missing accents still count as correct, with a note; a wrong article (le/la) counts as wrong.
+  const clean = s => String(s).toLowerCase().replace(/[’`]/g, "'").replace(/oe/g, 'œ').replace(/[.!?;:,«»"]/g, '').replace(/\s+/g, ' ').trim();
+  E.checkType = (q, typed) => {
+    let t = clean(typed); const ans = clean(q.answer);
+    const art = t.match(/^(le |la |les |l'|un |une )/);
+    if (art && !ans.startsWith(art[0].trim())) {
+      t = t.slice(art[0].length);
+      const a = art[0].trim(), fem = a === 'la' || a === 'une', masc = a === 'le' || a === 'un';
+      if (((q.g === 'm' && fem) || (q.g === 'f' && masc)) && FR.norm(t) === FR.norm(ans)) return { ok: false, gender: true };
+    }
+    if (t === ans) return { ok: true };
+    if (FR.norm(t) === FR.norm(ans)) {
+      // Highlight the letters whose accent was missing or wrong.
+      const a = [...q.answer], b = [...t]; let h = '';
+      a.forEach((c, i) => { const same = (b[i] || '').toLowerCase() === c.toLowerCase(); h += same ? FR.esc(c) : '<mark>' + FR.esc(c) + '</mark>'; });
+      return { ok: true, accent: true, html: a.length === b.length ? h : FR.esc(q.answer) };
+    }
+    return { ok: false };
+  };
+  // Typing questions: from the English meaning (or from the sound, "dictation"), write the French word.
+  E.qType = (w, dict) => ({ type: 'type', k: 't:' + w.fr, L: w.topic, sk: 'typing', lab: dict ? 'q_dict' : 'q_type', term: dict ? '' : w.en, tl: 'en', answer: w.fr, g: w.g, pos: w.pos, listen: !!dict, say: w.fr, ex: w.ex ? [w.ex, w.exEn] : null });
   E.fromKey = (k, test) => {
     const [t, a, b] = k.split(':');
+    if (t === 't') { const w = FR.wordBy[a]; if (!w || E.locked(w)) return null; return test ? true : E.qType(w, Math.random() < 0.3); }
     if (t === 'w' || t === 'n') { const w = FR.wordBy[a]; if (!w || E.locked(w)) return null; return test ? true : t === 'w' ? E.qWord(w) : E.qGender(w, true); }
     const l = FR.lessonBy[a]; if (!l) return null;
     if (t === 'g') return l.g[b] ? (test ? true : E.qGram(l, +b)) : null;
@@ -99,20 +128,24 @@
   E.keyLabel = k => {
     const [t, a, b] = k.split(':'), w = FR.wordBy[a], l = FR.lessonBy[a];
     if (t === 'w' && w) return [w.fr, w.en];
+    if (t === 't' && w) return [w.fr, w.en];
     if (t === 'n' && w) return [FR.withArt(w), GN[w.g] ? FR.pick(GN[w.g]) : FR.t('both')];
     if (t === 'g' && l && l.g[b]) return [l.g[b][0].replace('___', '[' + l.g[b][1][l.g[b][2]] + ']'), ''];
     if (t === 'b' && l && l.s[b]) return [l.s[b][0], l.s[b][1]];
     return null;
   };
-  const lessonKeys = l => [...E.lw(l.id).map(w => 'w:' + w.fr), ...E.lw(l.id).filter(w => w.g === 'm' || w.g === 'f').map(w => 'n:' + w.fr), ...l.g.map((_, i) => 'g:' + l.id + ':' + i), ...l.s.map((_, i) => 'b:' + l.id + ':' + i)];
+  const lessonKeys = l => [...E.lw(l.id).map(w => 'w:' + w.fr), ...E.lw(l.id).filter(w => w.fr.length < 18).map(w => 't:' + w.fr),...E.lw(l.id).filter(w => w.g === 'm' || w.g === 'f').map(w => 'n:' + w.fr), ...l.g.map((_, i) => 'g:' + l.id + ':' + i), ...l.s.map((_, i) => 'b:' + l.id + ':' + i)];
   const weakFirst = keys => { const it = S().items; return FR.shuffle(keys).sort((x, y) => (it[x] ? it[x].b : 0.5) - (it[y] ? it[y].b : 0.5)); };
   const fromKeys = (keys, n) => FR.shuffle(weakFirst(keys).slice(0, n).map(k => E.fromKey(k)).filter(Boolean));
 
   function lessonQ(l, n) {
     const ws = FR.shuffle(E.lw(l.id));
-    const cat = { g: l.g.map((_, i) => E.qGram(l, i)), v: ws.map((w, i) => E.qWord(w, i % 2 ? 'e' : 'f')), n: ws.filter(w => w.g === 'm' || w.g === 'f').slice(0, 3).map(w => E.qGender(w)), b: l.s.map((_, i) => E.qBuild(l, i)) };
-    const order = ['v', 'v', 'g', 'n', 'v', 'g', 'b'], out = [];
-    for (let i = 0; out.length < n && i < 120; i++) { const c = cat[order[i % order.length]]; if (c.length) out.push(c.shift()); }
+    // Every word is met once (multiple choice, or typed for about a third of them), plus grammar, gender and sentence building.
+    n = Math.min(26, Math.max(n, ws.length + 5));
+    const cat = { g: l.g.map((_, i) => E.qGram(l, i)), v: ws.map((w, i) => i % 3 === 2 && w.fr.length < 18 ? E.qType(w, i % 6 === 5) : E.qWord(w, i % 2 ? 'e' : 'f')),n: ws.filter(w => w.g === 'm' || w.g === 'f').slice(0, 3).map(w => E.qGender(w)), b: l.s.map((_, i) => E.qBuild(l, i)) };
+    const order = ['v', 'v', 'g', 'v', 'n', 'v', 'g', 'v', 'b'], out = [];
+    for (let i = 0; out.length < n && i < 160; i++) { const c = cat[order[i % order.length]]; if (c.length) out.push(c.shift()); }
+    out.forEach(q => { q.L = l.id; });
     return out;
   }
   E.related = ids => {
@@ -156,7 +189,8 @@
   };
 
   E.mark = (q, ok) => {
-    const s = S(), it = s.items[q.k] || (s.items[q.k] = { b: 0, r: 0, w: 0, d: 0 });
+    const s = S(), it = s.items[q.k] || (s.items[q.k] = { b: 0, r: 0, w: 0, d: 0 }), was = it.b;
+    if (ok && was < 1 && q.k[0] === 'w') { const dd = E.day(); dd.nw = (dd.nw || 0) + 1; }
     if (ok) { it.r++; it.b = Math.min(6, it.b + 1); } else { it.w++; it.b = Math.max(0, it.b - 2); }
     it.d = it.b ? new Date().setHours(0, 0, 0, 0) + IV[it.b] * DAY : Date.now();
     ['L:' + q.L, 'S:' + q.sk].forEach(tg => { const x = s.tags[tg] || (s.tags[tg] = { r: 0, w: 0 }); ok ? x.r++ : x.w++; });

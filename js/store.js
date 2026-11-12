@@ -6,7 +6,7 @@
 
   const defaults = () => ({
     v: 1,
-    settings: { lang: 'en', theme: 'simple', pacing: 'auto', spacing: 0, remind: '', motion: 'full', target: '2027-12-31', voice: 0.9, sound: 'on', readPause: 800 },
+    settings: { lang: 'en', theme: 'simple', pacing: 'auto', spacing: 0, remind: '', motion: 'full', target: '2027-12-31', voice: 0.9, sound: 'on', readPause: 800, kb: 'auto', kbLayout: 'azerty' },
     items: {},      // spaced-repetition memory per item: {b: box, r: right, w: wrong, d: due}
     lessons: {},    // lesson id -> {done, n, best, t}
     chapters: {},   // chapter id -> {t}

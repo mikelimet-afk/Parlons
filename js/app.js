@@ -3,7 +3,7 @@
   const FR = window.FR, E = FR.engine, { tt, bi } = FR;
   const S = () => FR.state;
   // A different entrance animation per section.
-  const ANIM = { home: 'zoom', learn: 'up', lesson: 'slide', session: 'slide', result: 'zoom', practice: 'up', gender: 'flip', dict: 'slide', rules: 'up', everyday: 'slideL', read: 'fade', progress: 'rise', coach: 'zoom', settings: 'up', exam: 'flip' };
+  const ANIM = { home: 'zoom', learn: 'up', lesson: 'slide', session: 'slide', result: 'zoom', practice: 'up', gender: 'flip', dict: 'slide', rules: 'up', everyday: 'slideL', read: 'fade', progress: 'rise', coach: 'zoom', settings: 'up', exam: 'flip', basics: 'rise', tips: 'up', typing: 'zoom' };
   const TABS = [['home', '🏠', 'home'], ['learn', '🧭', 'lessons'], ['dict', '📚', 'tab_dict'], ['read', '📖', 'reading'], ['progress', '📈', 'progress']];
 
   function parse() {
@@ -41,7 +41,7 @@
   };
   FR.applySettings = () => {
     const st = S().settings;
-    document.body.dataset.theme = st.theme;
+    document.body.dataset.theme = FR.master && FR.master.on ? 'napoleon' : st.theme;
     document.body.classList.toggle('calm', st.motion === 'calm');
     document.documentElement.lang = st.lang;
   };

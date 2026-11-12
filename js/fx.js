@@ -21,10 +21,11 @@
   function next() {
     const c = document.getElementById('cele'), e = queue.shift();
     if (!e) { c.innerHTML = ''; return; }
-    if (e.confetti !== false) FR.confetti(e.big ? 220 : 110);
+    if (e.confetti !== false) FR.confetti(e.big ? 240 : 110);
+    if (e.title && typeof e.title === 'string') setTimeout(() => FR.speak(e.title), 300);
     const words = (e.words || []).map(w => '<div class="rw"><b lang="fr">' + FR.esc(w.fr) + '</b><span>' + FR.esc(w.en) + '</span></div>').join('');
     c.innerHTML = '<div class="cele"><div class="cele-card' + (e.big ? ' big' : '') + '"><div class="cele-i">' + e.icon + '</div><h2>' + FR.bi(e.title) + '</h2>' +
-      (e.sub ? '<p>' + FR.bi(e.sub) + '</p>' : '') + (e.body ? '<p class="mute">' + FR.bi(e.body) + '</p>' : '') +
+      (e.sub ? '<p' + (e.subClass ? ' class="' + e.subClass + '"' : '') + '>' + FR.bi(e.sub) + '</p>' : '') + (e.pct != null ? '<div class="cele-pct" style="--p:' + e.pct + '"><b>' + e.pct + '%</b></div>' : '') + (e.body ? '<p class="mute">' + FR.bi(e.body) + '</p>' : '') +
       (words ? '<div class="rws">' + words + '</div>' : '') + '<button class="btn primary" data-act="celenext">' + FR.tt('continue') + '</button></div></div>';
   }
   FR.celebrate = list => { queue.push(...list); if (!document.querySelector('.cele')) next(); };
@@ -61,6 +62,13 @@
       document.body.appendChild(p);
       setTimeout(() => p.remove(), 700);
     }
+  };
+  // End-of-exercise praise in French with an English subtitle; confetti scaled to the score.
+  FR.cheer = (p, fast, title) => {
+    const L = p >= 1 ? ['🏆', 'Parfait !', 'Perfect!'] : p >= 0.9 ? ['🌟', 'Excellent !', 'Excellent!'] : p >= 0.75 ? ['🎉', 'Bravo, beau travail !', 'Great job!'] :
+      p >= 0.6 ? ['👍', 'Bien joué !', 'Well done!'] : p >= 0.4 ? ['💪', 'Pas mal, continue !', 'Not bad — keep going!'] : ['🌱', 'Courage, tu progresses !', 'Hang in there — you\'re improving!'];
+    const quick = fast && p >= 0.75, fr = quick ? L[1] + ' C\'était rapide !' : L[1], en = quick ? L[2] + ' That was fast!' : L[2];
+    FR.celebrate([{ icon: quick ? '⚡' : L[0], title: fr, sub: en, subClass: 'subtitle', body: title ? title : null, pct: p > 0 && p < 1 ? Math.round(p * 100) : null, confetti: p >= 0.4, big: p >= 0.9 }]);
   };
   // Answer sounds, generated on the device (no audio files): a rising chime for right, a soft low tone for wrong.
   let ac = null;

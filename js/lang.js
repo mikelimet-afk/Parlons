@@ -11,7 +11,7 @@
   FR.words.forEach(w => { FR.wordBy[w.fr] = w; });
   // Themed word packs (js/data/words-*.js). Line: french|english|code|example|translation|pronunciation (optional).
   // code: m / f / mf = noun with that gender, v verb, a adjective, d adverb, p phrase, c conjunction, r preposition, o pronoun, i interjection.
-  const CODE = { m: ['noun', 'm'], f: ['noun', 'f'], mf: ['noun', 'mf'], v: ['verb', ''], a: ['adj', ''], d: ['adv', ''], p: ['phrase', ''], c: ['conj', ''], r: ['prep', ''], o: ['pron', ''], i: ['interj', ''] };
+  const CODE = { m: ['noun', 'm'], f: ['noun', 'f'], mf: ['noun', 'mf'], v: ['verb', ''], a: ['adj', ''], d: ['adv', ''], p: ['phrase', ''], c: ['conj', ''], r: ['prep', ''], o: ['pron', ''], i: ['interj', ''], num: ['num', ''] };
   FR.TOPICS = {};
   (FR.DICT_MORE || []).forEach(raw => {
     let topic = '';
@@ -43,27 +43,80 @@
   };
 
   // ---------- lookup ----------
+  // Irregular verb forms (js/data/forms.js) and a lower-case index of headwords.
+  const FORMS = {};
+  (FR.FORMS_RAW || '').split(';').forEach(p => { const [inf, fs] = p.trim().split(':'); if (fs) fs.trim().split(/\s+/).forEach(f => { if (!FORMS[f]) FORMS[f] = inf; }); });
+  FR.wordLow = {};
+  FR.words.forEach(w => { const k = w.fr.toLowerCase(); if (!FR.wordLow[k]) FR.wordLow[k] = w; });
+  const entry = x => FR.wordLow[x] || FR.wordLow['se ' + x] || FR.wordLow["s'" + x];
+  const union = (a, b) => { const out = []; (a + ',' + b).split(/[,;]/).map(s => s.trim()).filter(Boolean).forEach(s => { if (!out.includes(s)) out.push(s); }); return out.join(', '); };
+  const hit = x => {
+    const e = entry(x);
+    if (e) return { fr: e.fr, en: gloss[x] ? union(gloss[x], e.en) : e.en, pron: e.pron, entry: e };
+    return gloss[x] ? { fr: x, en: gloss[x] } : null;
+  };
+  // Ending rules, tried in order: [ending, replacements]. Covers plurals, feminines, adverbs and regular verb endings.
+  const ENDS = [
+    ['aux', ['al', 'ail']], ['eaux', ['eau']], ['eux', ['eu']], ['s', ['']], ['x', ['']],
+    ['euse', ['eux', 'eur']], ['euses', ['eux', 'eur']], ['rice', ['eur']], ['rices', ['eur']], ['ive', ['if']], ['ives', ['if']], ['ère', ['er']], ['ères', ['er']],
+    ['elle', ['el', 'eau']], ['elles', ['el', 'eau']], ['enne', ['en']], ['ennes', ['en']], ['onne', ['on']], ['ette', ['et']], ['ète', ['et']], ['che', ['c']], ['que', ['c']], ['gue', ['g']],
+    ['amment', ['ant']], ['emment', ['ent']], ['ement', ['e', '']], ['ment', ['', 'e']],
+    ['es', ['', 'e', 'er']], ['e', ['', 'er']], ['ée', ['er', 'é']], ['ées', ['er', 'é']], ['és', ['er', 'é']], ['é', ['er']],
+    ['ons', ['er', 're', 'ir']], ['ez', ['er', 're', 'ir']], ['ent', ['er', 're', 'ir']], ['ant', ['er', 're', 'ir']],
+    ['ais', ['er', 're', 'ir']], ['ait', ['er', 're', 'ir']], ['ions', ['er', 're', 'ir']], ['iez', ['er', 're', 'ir']], ['aient', ['er', 're', 'ir']],
+    ['erai', ['er']], ['eras', ['er']], ['era', ['er']], ['erons', ['er']], ['erez', ['er']], ['eront', ['er']], ['erais', ['er']], ['erait', ['er']], ['erions', ['er']], ['eraient', ['er']],
+    ['ai', ['er']], ['as', ['er']], ['a', ['er']], ['âmes', ['er']], ['èrent', ['er']], ['ât', ['er']],
+    ['issons', ['ir']], ['issez', ['ir']], ['issent', ['ir']], ['issais', ['ir']], ['issait', ['ir']], ['issaient', ['ir']], ['issant', ['ir']], ['isse', ['ir']], ['irent', ['ir', 're']],
+    ['irai', ['ir', 're']], ['ira', ['ir', 're']], ['iront', ['ir', 're']], ['irait', ['ir', 're']], ['iraient', ['ir', 're']], ['is', ['ir', 're']], ['it', ['ir', 're']], ['i', ['ir']], ['ie', ['ir']], ['ies', ['ir']], ['is', ['ir']],
+    ['rai', ['re']], ['ra', ['re']], ['ront', ['re']], ['rait', ['re']], ['raient', ['re']], ['u', ['re', 'oir']], ['ue', ['re', 'oir']], ['us', ['re', 'oir']], ['ues', ['re', 'oir']], ['t', ['re']], ['d', ['dre']], ['ds', ['dre']]
+  ];
+  function lemma(w) {
+    let r = hit(w); if (r) return r;
+    if (FORMS[w]) { r = hit(FORMS[w]); if (r) return Object.assign({ form: w }, r); }
+    for (const [end, reps] of ENDS) {
+      if (w.length <= end.length + 1 || !w.endsWith(end)) continue;
+      const stem = w.slice(0, -end.length);
+      for (const rep of reps) {
+        for (const c of [stem + rep, stem.replace(/ç$/, 'c').replace(/ge$/, 'g') + rep, stem.replace(/è(?=[^aeiouéèê]+$)/, 'e') + rep, stem.replace(/è(?=[^aeiouéèê]+$)/, 'é') + rep, stem.replace(/(l|t)\1$/, '$1') + rep, stem.replace(/i$/, 'y') + rep]) {
+          if (c.length < 2) continue;
+          r = hit(c) || (FORMS[c] && hit(FORMS[c]));
+          if (r) return Object.assign({ form: w }, r);
+        }
+      }
+    }
+    return null;
+  }
   function frLookup(raw) {
     const w = raw.toLowerCase().replace(/[’`]/g, "'").replace(/^[-']+|[-']+$/g, '');
     if (!w) return null;
-    const hit = x => FR.wordBy[x] ? { fr: FR.wordBy[x].fr, en: FR.wordBy[x].en, pron: FR.wordBy[x].pron, entry: FR.wordBy[x] }
-      : gloss[x] ? { fr: x, en: gloss[x] } : null;
-    let r = hit(w);
+    let r = lemma(w);
     if (r) return r;
-    if (w.includes("'")) { // l'homme, j'habite, qu'il
-      const rest = w.slice(w.indexOf("'") + 1);
-      r = frLookup(rest);
-      if (r) return r;
-      return hit(w.slice(0, w.indexOf("'")));
+    if (w.includes("'")) { // l'homme, j'habite, qu'il, aujourd'hui
+      const i = w.indexOf("'");
+      r = frLookup(w.slice(i + 1)); if (r) return r;
+      return hit(w.slice(0, i)) || hit(w.slice(0, i) + 'e');
     }
-    // simple inflection guesses: plural, feminine, common verb endings
-    const tries = [[/s$/, ''], [/x$/, ''], [/e$/, ''], [/es$/, ''], [/aux$/, 'al'], [/elle$/, 'eau'], [/(e|es|ons|ez|ent|é|ée|és|ées|ais|ait|aient|era|erai|eras|erons|erez|eront)$/, 'er'], [/(is|it|issons|issez|issent|i)$/, 'ir'], [/ne$/, 'n']];
-    for (const [re, to] of tries) {
-      if (re.test(w)) { const c = w.replace(re, to); const h = c !== w && hit(c); if (h && c.length > 1) return Object.assign({ form: w }, h); }
-    }
-    if (w.includes('-')) { for (const p of w.split('-')) { const h = hit(p); if (h) return h; } }
+    if (w.includes('-')) { for (const p of w.split('-')) { const h = lemma(p); if (h) return h; } }
     return null;
   }
+  FR.lemma = w => frLookup(w);
+  // Words added without an example borrow a short sentence from the app's lessons, readings or stories.
+  (function borrowExamples() {
+    const pairs = [];
+    (FR.COURSE || []).forEach(c => (c.lessons || []).forEach(l => (l.s || []).forEach(s => pairs.push(s))));
+    (FR.PASSAGES || []).forEach(p => (p.s || []).forEach(s => pairs.push(s)));
+    (FR.STORIES || []).forEach(st => String(st.text || '').split('\n').forEach(l => {
+      if (/^\s*##/.test(l)) return; const [f, e] = l.split('|'); if (f && e) pairs.push([f.trim(), e.trim()]);
+    }));
+    pairs.forEach(([f, e]) => {
+      if (!f || !e || f.length > 110) return;
+      f.split(/[^A-Za-zÀ-ÿœŒ'’-]+/).forEach(t => {
+        if (t.length < 2) return;
+        const r = frLookup(t.toLowerCase()), w = r && FR.wordLow[String(r.fr || '').toLowerCase()];
+        if (w && !w.ex) { w.ex = f; w.exEn = e; }
+      });
+    });
+  })();
   function enLookup(raw) {
     const w = raw.toLowerCase().replace(/[’`]/g, "'");
     for (const c of [w, w.replace(/s$/, ''), w.replace(/es$/, ''), w.replace(/ed$/, ''), w.replace(/ed$/, 'e'), w.replace(/ing$/, ''), w.replace(/ing$/, 'e')]) {

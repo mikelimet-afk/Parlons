@@ -1,25 +1,4 @@
 window.FR = window.FR || {};
-// Formal vs colloquial pairs: [formal, casual, meaning, note]
-FR.PAIRS = [
-['Comment allez-vous ?', 'Ça va ?', 'How are you?', 'The answer to both can simply be "Ça va, merci".'],
-['Je ne sais pas.', 'Je sais pas. / Chais pas.', 'I don\'t know.', 'In speech the "ne" almost always disappears.'],
-['Qu\'est-ce que vous faites ?', 'Tu fais quoi ?', 'What are you doing?', 'Casual questions put the question word at the end.'],
-['Nous allons au cinéma.', 'On va au ciné.', 'We\'re going to the cinema.', '"On" replaces "nous" in nearly all spoken French.'],
-['Pourriez-vous répéter, s\'il vous plaît ?', 'Tu peux répéter ?', 'Could you repeat that?', '"Hein ?" and "Quoi ?" exist but sound abrupt.'],
-['Je vous remercie.', 'Merci, c\'est sympa.', 'Thank you.', ''],
-['Il n\'y a pas de problème.', 'Pas de souci. / T\'inquiète.', 'No problem.', '"T\'inquiète" is short for "ne t\'inquiète pas".'],
-['D\'accord.', 'OK. / Ça marche.', 'All right.', ''],
-['Au revoir, bonne journée.', 'Salut ! / À plus !', 'Goodbye.', '"À plus" is short for "à plus tard"; in texts: A+.'],
-['C\'est très bien.', 'C\'est top. / C\'est génial.', 'That\'s great.', ''],
-['Je suis très fatigué.', 'Je suis crevé.', 'I\'m very tired.', ''],
-['mon travail', 'mon boulot', 'my job', ''],
-['un ami', 'un pote', 'a friend', ''],
-['Voulez-vous boire quelque chose ?', 'Tu veux boire un truc ?', 'Would you like something to drink?', '"Un truc" = a thing, something.'],
-['Je n\'ai pas compris.', 'J\'ai pas compris.', 'I didn\'t understand.', ''],
-['Excusez-moi de vous déranger.', 'Désolé de te déranger.', 'Sorry to bother you.', ''],
-['Il y a beaucoup de monde.', 'Y a plein de monde.', 'There are a lot of people.', '"Il y a" shrinks to "y a" in speech.'],
-['Cela ne fait rien.', 'C\'est pas grave.', 'It doesn\'t matter.', '']
-];
 
 // Roleplays. reg = register expected. Each turn: npc line [fr, en] and/or task [en, fr]; opts = [French, English, correct?, feedback].
 FR.ROLEPLAYS = [
