@@ -82,7 +82,7 @@
   const attrs = d => Object.keys(d).filter(k => k !== 'act' && k !== 'force').map(k => 'data-' + k + '="' + esc(d[k]) + '"').join(' ');
   A.start = d => {
     const s = S();
-    if (d.kind !== 'practice' && d.kind !== 'review' && d.kind !== 'gender' && d.kind !== 'comeback' && s.gate && !(d.kind === 'lesson' && s.lessons[d.id])) { FR.toast(tt('gate_short')); return; }
+    if (d.kind !== 'practice' && d.kind !== 'vocab' && d.kind !== 'review' && d.kind !== 'gender' && d.kind !== 'comeback' && s.gate && !(d.kind === 'lesson' && s.lessons[d.id])) { FR.toast(tt('gate_short')); return; }
     if (s.session && !d.force) {
       FR.sheet('<h3>' + tt('busy_t') + '</h3><p class="mute">' + bi(s.session.title) + ' · ' + (s.session.i + 1) + '/' + s.session.queue.length + '</p><div class="col">' + btn('resume', 'go', 'data-to="session"', 'primary') + '<button class="btn" data-act="start" data-force="1" ' + attrs(d) + '>' + tt('start_new') + '</button></div>');
       return;
@@ -127,6 +127,7 @@
       E.mark(q, ok); ok ? ss.right++ : ss.wrong++; ss.last.push(ok ? 1 : 0);
       if (!ok) { ss.missed.push(q.k); ss.queue.push(Object.assign({}, q, { retry: 1 })); }
     } else if (!ok && q.retry < 2) ss.queue.push(Object.assign({}, q, { retry: q.retry + 1 }));
+    FR.sfx(ok);
     ss.cur = { ok, pick, praise: PRAISE[Math.floor(Math.random() * PRAISE.length)], nudge: E.tick(ss) };
     FR.save(); FR.refresh();
     if (ok) { const el = document.querySelector('.opt.ok, .line.ok'); FR.burst(el); if (!q.retry) FR.floatXp(el, '+5 XP'); }
@@ -188,19 +189,21 @@
   };
 
   // ---------- dictionary ----------
-  const dq = { q: '', f: 'all', open: '' };
-  const POS = { noun: ['noun', 'nom'], verb: ['verb', 'verbe'], adj: ['adjective', 'adjectif'], adv: ['adverb', 'adverbe'], phrase: ['phrase', 'expression'], interj: ['interjection', 'interjection'], num: ['number', 'nombre'], pron: ['pronoun', 'pronom'], conj: ['conjunction', 'conjonction'] };
+  const dq = { q: '', f: 'all', open: '', th: '' };
+  const POS = { prep: ['preposition', 'préposition'], noun: ['noun', 'nom'], verb: ['verb', 'verbe'], adj: ['adjective', 'adjectif'], adv: ['adverb', 'adverbe'], phrase: ['phrase', 'expression'], interj: ['interjection', 'interjection'], num: ['number', 'nombre'], pron: ['pronoun', 'pronom'], conj: ['conjunction', 'conjonction'] };
   function dictList() {
     const q = FR.norm(dq.q.trim());
-    const ws = FR.words.filter(w => (dq.f === 'all' || (dq.f === 'bonus' ? w.topic === 'bonus' : dq.f === 'other' ? !['noun', 'verb', 'adj'].includes(w.pos) && w.topic !== 'bonus' : w.pos === dq.f)) && (!q || FR.norm(w.fr).includes(q) || (!E.locked(w) && FR.norm(w.en).includes(q))))
+    const all = FR.words.filter(w => (!dq.th || w.topic === dq.th) && (dq.f === 'all' || (dq.f === 'bonus' ? w.topic === 'bonus' : dq.f === 'other' ? !['noun', 'verb', 'adj'].includes(w.pos) && w.topic !== 'bonus' : w.pos === dq.f)) && (!q || FR.norm(w.fr).includes(q) || (!E.locked(w) && FR.norm(w.en).includes(q))))
       .sort((a, b) => FR.norm(a.fr).localeCompare(FR.norm(b.fr)));
-    if (!ws.length) return '<p class="mute center">' + tt('no_results') + '</p>';
-    return ws.map(w => {
+    if (!all.length) return '<p class="mute center">' + tt('no_results') + '</p>';
+    const MAX = 120, ws = all.slice(0, MAX);
+    return (dq.th ? '<div class="col"><button class="btn primary" data-act="start" data-kind="vocab" data-topic="' + esc(dq.th) + '">' + tt('quiz_theme') + '</button></div>' : '') +
+      '<p class="hint">' + (all.length > MAX ? tt('showing', { n: MAX, t: all.length }) : tt('n_words', { n: all.length })) + '</p>' + ws.map(w => {
       const lock = E.locked(w), open = dq.open === w.fr && !lock, it = S().items['w:' + w.fr];
       let h = '<div class="entry' + (open ? ' open' : '') + (lock ? ' lockd' : '') + '" data-act="dopen" data-w="' + esc(w.fr) + '"><div class="entry-h"><b lang="fr">' + esc(w.fr) + '</b>' + (w.g ? '<span class="g g-' + w.g + '">' + (w.g === 'mf' ? 'm/f' : w.g) + '</span>' : '') + '<span class="en">' + (lock ? '🔒 ' + tt('streak_reward') : esc(w.en)) + '</span></div>';
-      if (open) h += '<div class="entry-b"><p class="mute small">' + bi(POS[w.pos] || [w.pos, w.pos]) + (w.g ? ' · <span lang="fr">' + esc(FR.withArt(w) + ', ' + FR.withArt(w, true)) + '</span>' : '') + '</p><p class="pronl">' + say(w.fr) + ' <i>' + esc(w.pron) + '</i></p>' +
+      if (open) h += '<div class="entry-b"><p class="mute small">' + bi(POS[w.pos] || [w.pos, w.pos]) + (w.g ? ' · <span lang="fr">' + esc(FR.withArt(w) + ', ' + FR.withArt(w, true)) + '</span>' : '') + '</p><p class="pronl">' + say(w.fr) + ' <i>' + esc(w.pron || '≈ ' + FR.approx(w.fr)) + '</i></p>' +
         (w.ex ? '<p class="ex"><span lang="fr">' + esc(w.ex) + '</span> ' + say(w.ex) + '<br><span class="mute">' + esc(w.exEn) + '</span></p>' : '') + (w.note ? '<p class="usage">💡 ' + esc(w.note) + '</p>' : '') +
-        '<p class="mute small">' + tt('memory') + ' <span class="dots">' + [1, 2, 3, 4, 5, 6].map(i => '<i class="' + (it && it.b >= i ? 'on' : '') + '"></i>').join('') + '</span>' + (FR.lessonBy[w.topic] ? ' · <button class="link" data-act="go" data-to="lesson/' + w.topic + '">' + bi(FR.lessonBy[w.topic].t) + '</button>' : '') + '</p></div>';
+        '<p class="mute small">' + tt('memory') + ' <span class="dots">' + [1, 2, 3, 4, 5, 6].map(i => '<i class="' + (it && it.b >= i ? 'on' : '') + '"></i>').join('') + '</span>' + (FR.lessonBy[w.topic] ? ' · <button class="link" data-act="go" data-to="lesson/' + w.topic + '">' + bi(FR.lessonBy[w.topic].t) + '</button>' : FR.TOPICS[w.topic] ? ' · ' + bi(FR.TOPICS[w.topic]) : '') + '</p></div>';
       return h + '</div>';
     }).join('');
   }
@@ -209,12 +212,14 @@
     const fl = [['all', 'f_all'], ['noun', 'f_nouns'], ['verb', 'f_verbs'], ['adj', 'f_adj'], ['other', 'f_other'], ['bonus', 'f_bonus']];
     return '<h1>' + tt('dictionary') + '</h1><input id="dq" class="search" type="search" placeholder="' + esc(t('search_ph')) + '" value="' + esc(dq.q) + '" autocomplete="off">' +
       '<div class="chips scroll" id="dchips">' + fl.map(f => '<button class="chip' + (dq.f === f[0] ? ' on' : '') + '" data-act="dfilter" data-f="' + f[0] + '">' + tt(f[1]) + '</button>').join('') + '</div>' +
+      '<select class="search" data-chg="dtheme"><option value="">' + esc(t('all_themes')) + '</option>' + Object.keys(FR.TOPICS).map(k => '<option value="' + esc(k) + '"' + (dq.th === k ? ' selected' : '') + '>' + esc(FR.pick(FR.TOPICS[k])) + '</option>').join('') + '</select>' +
       '<p class="hint">' + tt('dict_count', { n: FR.words.filter(w => !E.locked(w)).length, b: FR.words.filter(E.locked).length }) + '</p><div id="dlist" class="entries">' + dictList() + '</div>';
   };
+  FR.chg.dtheme = el => { dq.th = el.value; document.getElementById('dlist').innerHTML = dictList(); };
   AF.dict = () => { const i = document.getElementById('dq'); if (i) i.addEventListener('input', () => { dq.q = i.value; document.getElementById('dlist').innerHTML = dictList(); }); };
   A.dopen = (d, el, e) => { if (e.target.closest('button')) return; dq.open = dq.open === d.w ? '' : d.w; document.getElementById('dlist').innerHTML = dictList(); };
   A.dfilter = (d, el) => { dq.f = d.f; document.querySelectorAll('#dchips .chip').forEach(c => c.classList.toggle('on', c === el)); document.getElementById('dlist').innerHTML = dictList(); };
-  A.say = d => FR.speak(d.text);
+  A.say = d => { if (FR.stopReading) FR.stopReading(); FR.speak(d.text); };
 
   // ---------- rules ----------
   let openRule = '';
@@ -260,7 +265,7 @@
   A.rppick = d => {
     const rp = S().rp; if (!rp || rp.pick != null) return;
     const R = FR.ROLEPLAYS.find(x => x.id === rp.id), ok = !!R.turns[rp.i].opts[+d.i][2];
-    rp.pick = +d.i; if (ok) rp.score++;
+    rp.pick = +d.i; if (ok) rp.score++; FR.sfx(ok);
     const x = S().tags['S:register'] || (S().tags['S:register'] = { r: 0, w: 0 }); ok ? x.r++ : x.w++;
     FR.save(); FR.refresh(); if (ok) FR.burst(document.querySelector('.opt.ok'));
   };
@@ -280,8 +285,9 @@
     if (P) {
       const done = S().read[P.id];
       return back('read', 'reading') + '<small class="eyebrow">' + bi(FR.CATS[P.cat]) + ' · ' + tt(LEN[P.len]) + '</small><h1 lang="fr">' + esc(P.t[0]) + '</h1><p class="mute">' + esc(P.t[1]) + '</p>' +
-        '<div class="row"><label class="switch"><input type="checkbox" data-chg="showen"' + (showEn ? ' checked' : '') + '><span>' + tt('show_en') + '</span></label><button class="btn small" data-act="readall" data-id="' + P.id + '">🔊 ' + tt('listen_all') + '</button></div>' +
-        '<p class="hint">' + tt('hint_read') + '</p><article class="passage' + (showEn ? ' en' : '') + '">' + P.s.map(x => '<p class="sent"><span lang="fr">' + esc(x[0]) + '</span>' + say(x[0]) + '<span class="tr">' + esc(x[1]) + '</span></p>').join('') + '</article>' +
+        '<div class="row"><label class="switch"><input type="checkbox" data-chg="showen"' + (showEn ? ' checked' : '') + '><span>' + tt('show_en') + '</span></label><span id="rdctl" class="row tight">' + rdButtons(P.id) + '</span></div>' +
+        '<small class="mute">' + tt('rd_gap') + '</small>' + seg('readPause', [[300, 'gap_s'], [800, 'gap_m'], [1600, 'gap_l']]) +
+        '<p class="hint">' + tt('hint_read') + '</p><article class="passage' + (showEn ? ' en' : '') + '">' + P.s.map((x, i) => '<p class="sent' + (paraStart(P, i) ? ' brk' : '') + (rd && rd.id === P.id && rd.i === i ? ' now' : '') + '"><span lang="fr">' + esc(x[0]) + '</span>' + say(x[0]) + '<span class="tr">' + esc(x[1]) + '</span></p>').join('') + '</article>' +
         '<div class="col">' + (done ? '<p class="note center">✓ ' + tt('read_done') + '</p>' : btn('mark_read', 'markread', 'data-id="' + P.id + '"', 'primary')) + '</div>';
     }
     const list = FR.PASSAGES.filter(p => (rf.cat === 'all' || p.cat === rf.cat) && (rf.len === 'all' || p.len === rf.len));
@@ -293,7 +299,48 @@
   A.rfcat = d => { rf.cat = d.v; FR.refresh(); };
   A.rflen = d => { rf.len = d.v; FR.refresh(); };
   FR.chg.showen = el => { showEn = el.checked; const a = document.querySelector('.passage'); if (a) a.classList.toggle('en', showEn); };
-  A.readall = d => { const P = FR.PASSAGES.find(x => x.id === d.id); if (P) FR.speak(P.s.map(x => x[0]).join(' ')); };
+  // Listening: one sentence at a time, with a pause between sentences and a longer one between paragraphs.
+  let rd = null; // { id, i, paused, t }
+  const paraSize = P => { const n = P.s.length; if (n < 6 || P.s[0][0][0] === '—') return 0; return Math.ceil(n / Math.round(n / 3.5)); };
+  const paraStart = (P, i) => { const z = P.br ? 0 : paraSize(P); return i > 0 && (P.br ? P.br.includes(i) : z && i % z === 0); };
+  const rdButtons = id => {
+    const on = rd && rd.id === id;
+    return '<button class="btn small" data-act="readall" data-id="' + id + '">' + (on ? (rd.paused ? '▶ ' + tt('rd_resume') : '⏸ ' + tt('rd_pause')) : '🔊 ' + tt('listen_all')) + '</button>' + (on ? '<button class="btn small" data-act="readstop">■ ' + tt('rd_stop') + '</button>' : '');
+  };
+  const rdPaint = () => {
+    const c = document.getElementById('rdctl'); if (c && rd) c.innerHTML = rdButtons(rd.id);
+    document.querySelectorAll('.passage .sent').forEach((el, j) => el.classList.toggle('now', !!rd && j === rd.i));
+  };
+  const rdStop = () => {
+    if (!rd) return;
+    const id = rd.id; clearTimeout(rd.t); rd = null;
+    if (FR.canSpeak()) speechSynthesis.cancel();
+    const c = document.getElementById('rdctl'); if (c) c.innerHTML = rdButtons(id);
+    document.querySelectorAll('.passage .sent.now').forEach(el => el.classList.remove('now'));
+  };
+  FR.stopReading = rdStop;
+  const rdStep = () => {
+    if (!rd || rd.paused) return;
+    const P = FR.PASSAGES.find(x => x.id === rd.id), me = rd;
+    if (!P || rd.i >= P.s.length) { rdStop(); return; }
+    rdPaint();
+    const el = document.querySelectorAll('.passage .sent')[rd.i]; if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    FR.speak(P.s[rd.i][0], () => {
+      if (rd !== me || rd.paused) return;
+      rd.i++;
+      rd.t = setTimeout(rdStep, (S().settings.readPause || 800) * (paraStart(P, rd.i) ? 2 : 1));
+    });
+  };
+  A.readall = d => {
+    if (!FR.canSpeak()) { FR.toast(tt('no_voice')); return; }
+    if (rd && rd.id === d.id) { // pause / resume
+      rd.paused = !rd.paused; clearTimeout(rd.t);
+      if (rd.paused) { speechSynthesis.cancel(); rdPaint(); } else rdStep();
+      return;
+    }
+    rdStop(); rd = { id: d.id, i: 0, paused: false, t: 0 }; rdStep();
+  };
+  A.readstop = rdStop;
   A.markread = d => { S().read[d.id] = Date.now(); const P = FR.PASSAGES.find(x => x.id === d.id); E.reward(P.len === 'l' ? 20 : P.len === 'm' ? 15 : 10, { k: 'read', ti: [P.t[1], P.t[0]], r: 0, n: 0 }); FR.toast('📖 ' + tt('read_xp')); FR.refresh(); };
 
   // ---------- progress ----------
@@ -378,7 +425,7 @@
     const st = S().settings;
     return '<h1>' + tt('settings') + '</h1>' +
       '<section class="card"><h3>' + tt('language') + '</h3>' + seg('lang', [['en', 'English', 1], ['fr', 'Français', 1]]) + '<p class="hint">' + tt('hint_press') + '</p></section>' +
-      '<section class="card"><h3>' + tt('theme') + '</h3>' + seg('theme', [['simple', 'th_simple'], ['minimal', 'th_minimal'], ['frenchy', 'th_frenchy']]) + '<h4>' + tt('motion') + '</h4>' + seg('motion', [['full', 'mo_full'], ['calm', 'mo_calm']]) + '</section>' +
+      '<section class="card"><h3>' + tt('theme') + '</h3>' + seg('theme', [['simple', 'th_simple'], ['minimal', 'th_minimal'], ['frenchy', 'th_frenchy']]) + '<h4>' + tt('motion') + '</h4>' + seg('motion', [['full', 'mo_full'], ['calm', 'mo_calm']]) + '<h4>' + tt('sounds') + '</h4>' + seg('sound', [['on', 'snd_on'], ['off', 'snd_off']]) + '</section>' +
       '<section class="card"><h3>' + tt('pacing') + '</h3>' + seg('pacing', [['auto', 'p_auto'], ['easy', 'p_easy'], ['medium', 'p_medium'], ['hard', 'p_hard']]) + '<p class="mute small">' + tt('pd_' + st.pacing) + '</p></section>' +
       '<section class="card"><h3>' + tt('spacing') + '</h3><p class="mute small">' + tt('spacing_d') + '</p>' + seg('spacing', [[0, 'sp_none'], [30, '30 min', 1], [60, '1 h', 1], [240, '4 h', 1], [720, '12 h', 1], [1440, '24 h', 1]]) + '</section>' +
       '<section class="card"><h3>' + tt('reminder') + '</h3><p class="mute small">' + tt('reminder_d') + '</p><div class="row"><input type="time" class="search" data-set="remind" value="' + esc(st.remind) + '">' + btn('notif_on', 'notif', '', 'small') + '</div></section>' +
@@ -387,7 +434,7 @@
       '<section class="card"><h3>' + tt('data') + '</h3><p class="mute small">' + tt('data_d') + '</p><div class="row">' + btn('export', 'export', '', 'small') + '<label class="btn small">' + tt('import') + '<input type="file" accept="application/json,.json" data-chg="import" hidden></label>' + btn('reset', 'reset', '', 'small danger') + '</div></section>' +
       '<p class="mute center small">Parlons ! · v1</p>';
   };
-  A.set = d => { S().settings[d.k] = ['spacing', 'voice'].includes(d.k) ? +d.v : d.v; FR.save(); FR.applySettings(); FR.shell(); FR.refresh(); };
+  A.set = d => { S().settings[d.k] = ['spacing', 'voice', 'readPause'].includes(d.k) ? +d.v : d.v; FR.save(); FR.applySettings(); FR.shell(); FR.refresh(); if (d.k === 'sound' && d.v === 'on') FR.sfx(true); };
   A.lang = () => A.set({ k: 'lang', v: FR.fr() ? 'en' : 'fr' });
   A.notif = () => { if (!('Notification' in window)) { FR.toast(tt('notif_no')); return; } Notification.requestPermission().then(p => FR.toast(tt(p === 'granted' ? 'notif_ok' : 'notif_no'))); };
   A.export = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([FR.exportData()], { type: 'application/json' })); a.download = 'parlons-backup-' + FR.dayStr() + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };

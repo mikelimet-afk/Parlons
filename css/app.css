@@ -175,3 +175,9 @@ blockquote { margin:10px 0; padding:12px 14px; background:var(--soft); border-ra
 body.calm *,body.calm *::before,body.calm *::after { animation-duration:.01ms !important; animation-delay:0s !important; transition-duration:.01ms !important; }
 @media (prefers-reduced-motion:reduce) { .bg i { animation:none; } }
 @media (min-width:760px) { #view { padding-top:18px; } .tabs { left:50%; right:auto; transform:translateX(-50%); bottom:14px; width:520px; border:1px solid var(--line); border-radius:22px; padding:6px; box-shadow:var(--shadow); } }
+
+/* ---------- reading: paragraphs and the sentence being read aloud ---------- */
+.sent { padding:4px 8px; margin-left:-8px; margin-right:-8px; border-radius:10px; transition:background .35s, box-shadow .35s; }
+.sent.brk { margin-top:30px; }
+.sent.now { background:var(--soft); box-shadow:inset 3px 0 0 var(--acc); }
+.row.tight { margin-top:0; gap:6px; }

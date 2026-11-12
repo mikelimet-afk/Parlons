@@ -9,6 +9,22 @@
   });
   FR.wordBy = {};
   FR.words.forEach(w => { FR.wordBy[w.fr] = w; });
+  // Themed word packs (js/data/words-*.js). Line: french|english|code|example|translation|pronunciation (optional).
+  // code: m / f / mf = noun with that gender, v verb, a adjective, d adverb, p phrase, c conjunction, r preposition, o pronoun, i interjection.
+  const CODE = { m: ['noun', 'm'], f: ['noun', 'f'], mf: ['noun', 'mf'], v: ['verb', ''], a: ['adj', ''], d: ['adv', ''], p: ['phrase', ''], c: ['conj', ''], r: ['prep', ''], o: ['pron', ''], i: ['interj', ''] };
+  FR.TOPICS = {};
+  (FR.DICT_MORE || []).forEach(raw => {
+    let topic = '';
+    raw.split('\n').forEach(l => {
+      l = l.trim(); if (!l) return;
+      if (l[0] === '#') { const h = l.slice(1).split('|'); topic = 'x:' + h[0]; FR.TOPICS[topic] = [h[1], h[2]]; return; }
+      const [fr, en, code, ex, exEn, pron] = l.split('|');
+      if (!fr || !en || FR.wordBy[fr]) return;
+      const c = CODE[code] || ['phrase', ''];
+      const w = { fr, en, pos: c[0], g: c[1], pron: pron || '', ex: ex || '', exEn: exEn || '', note: '', topic };
+      FR.words.push(w); FR.wordBy[fr] = w;
+    });
+  });
   const gloss = {};
   FR.GLOSS_RAW.split(';').forEach(p => { const i = p.indexOf('='); if (i > 0) gloss[p.slice(0, i)] = p.slice(i + 1); });
   const rev = {}; // english -> french words
@@ -72,7 +88,7 @@
   FR.approx = word => {
     let s = word.toLowerCase().replace(/[’']/g, '').replace(/-/g, ' ');
     return s.split(' ').filter(Boolean).map(w => {
-      if (w.length > 3) w = w.replace(/(er|ez)$/, 'é');
+      if (w.length > 3) w = w.replace(/(er|ez)$/, 'é').replace(/ets?$/, 'è');
       w = w.replace(/gue(s?)$/, 'g_').replace(/que(s?)$/, 'k_').replace(/ge(s?)$/, 'j_').replace(/ce(s?)$/, 'ç_').replace(/ille(s?)$/, 'ill_');
       if (w.endsWith('_')) { /* ending already handled */ }
       else if (w.length > 2 && /es$/.test(w) && w.length > 3) w = w.slice(0, -2) + '_';

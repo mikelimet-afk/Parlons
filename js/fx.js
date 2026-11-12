@@ -62,6 +62,25 @@
       setTimeout(() => p.remove(), 700);
     }
   };
+  // Answer sounds, generated on the device (no audio files): a rising chime for right, a soft low tone for wrong.
+  let ac = null;
+  FR.sfx = ok => {
+    if (FR.state.settings.sound === 'off') return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === 'suspended') ac.resume();
+      const t = ac.currentTime + 0.01;
+      (ok ? [[659, 0], [988, 0.1]] : [[233, 0], [175, 0.13]]).forEach(([f, d]) => {
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.type = ok ? 'sine' : 'triangle'; o.frequency.value = f;
+        g.gain.setValueAtTime(0.0001, t + d);
+        g.gain.exponentialRampToValueAtTime(ok ? 0.16 : 0.13, t + d + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + d + (ok ? 0.28 : 0.24));
+        o.connect(g); g.connect(ac.destination);
+        o.start(t + d); o.stop(t + d + 0.32);
+      });
+    } catch (e) { /* no audio available */ }
+  };
   FR.floatXp = (el, txt) => {
     if (calm() || !el) return;
     const r = el.getBoundingClientRect(), p = document.createElement('i');

@@ -73,7 +73,7 @@
     if (el.dataset && el.dataset.chg && FR.chg[el.dataset.chg]) FR.chg[el.dataset.chg](el);
     if (el.dataset && el.dataset.set) { S().settings[el.dataset.set] = el.value; FR.save(); }
   });
-  window.addEventListener('hashchange', () => { FR.closePop(); render(true); });
+  window.addEventListener('hashchange', () => { FR.closePop(); if (FR.stopReading) FR.stopReading(); render(true); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); else FR.save(); });
 
   FR.load();

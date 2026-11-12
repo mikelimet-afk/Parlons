@@ -21,9 +21,9 @@ It is an installable PWA, so it works offline and can later be wrapped as an And
 | **Gender quiz** | Masculine / feminine / both, with the ending rule (or the exception) explained after each answer. French has no neuter. |
 | **Rules** | 15 short reference cards: le / la / l', du / de la, au / aux, tu / vous, passé composé vs imparfait, subjunctive… |
 | **Everyday French** | Formal vs colloquial pairs, and roleplays where you pick the reply that fits the situation. |
-| **Reading** | 18 passages (daily life, travel, press, academic, cinema, pop culture) in short / medium / long, with a per-sentence English toggle. |
+| **Reading** | 48 passages (8 each for daily life, travel, press, academic, cinema, pop culture) in short / medium / long, with a per-sentence English toggle. Listen plays one sentence at a time with an adjustable pause, and can be paused or stopped. |
 | **TEF / TCF** | Format summary and tips for each exam, plus a 20-minute timed mock for each (listening, reading, structures, writing and speaking tasks with checklists and model answers). |
-| **Dictionary** | ~215 entries with gender, pronunciation, example and usage note. 30 colloquial "bonus" words unlock through the streak. |
+| **Dictionary** | About 2,400 entries with gender, pronunciation and an example. Filter by theme (20 themed packs of ~100 words) and quiz yourself on any theme. 30 colloquial "bonus" words unlock through the streak. |
 | **Progress** | Streak, XP, 14-day chart, milestones, common mistakes, focus advice, history. |
 | **Coach** | The on-device "AI": a rule-based engine that schedules reviews, adapts the pace, and answers simple questions. |
 
@@ -43,12 +43,13 @@ Honest limits: the "coach" is rule-based, not a language model — it cannot hol
 
 All content is plain data in `js/data/`:
 
-- `dictionary.js` — one word per line: `french|english|type|gender|pronunciation|example|translation|note|lesson id`
+- `words-1.js` … `words-10.js` — themed packs, one word per line: `french|english|code|example|translation` (code: m, f, mf for nouns; v, a, d, p… for other types)
+- `dictionary.js` — lesson words, one per line: `french|english|type|gender|pronunciation|example|translation|note|lesson id`
 - `course.js` — chapters and lessons (tips, fill-in-the-blank items, sentences to rebuild)
 - `rules.js`, `everyday.js`, `passages.js` — rules, formal/casual pairs and roleplays, reading passages
 - `js/exam.js` — exam facts, tips and mock items
 
-A lesson's words are simply the dictionary entries whose last field is that lesson's `id`. Reaching a real B1 needs far more vocabulary than the starter set here (think 2,000+ words) — the structure is ready for it.
+A lesson's words are simply the dictionary entries whose last field is that lesson's `id`. The themed packs bring the dictionary to roughly the vocabulary size expected around B1; the lessons themselves still cover only the first 160 words and core grammar.
 
 ## Turning it into an APK later
 

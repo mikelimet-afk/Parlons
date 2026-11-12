@@ -138,6 +138,11 @@
       queue = fromKeys(ids.flatMap(x => lessonKeys(FR.lessonBy[x])), +d.n || P.q);
       title = ids.length === 1 ? FR.lessonBy[ids[0]].t : T.practice_t; id = ids.join(',');
     }
+    else if (kind === 'vocab') {
+      const ws = FR.words.filter(w => w.topic === d.topic);
+      queue = fromKeys([...ws.map(w => 'w:' + w.fr), ...ws.filter(w => w.g === 'm' || w.g === 'f').map(w => 'n:' + w.fr)], P.q);
+      title = FR.TOPICS[d.topic] || T.practice_t; id = d.topic;
+    }
     else if (kind === 'checkpoint') { const ch = FR.COURSE.find(c => c.id === id); if (!ch) return null; queue = fromKeys(ch.lessons.flatMap(lessonKeys), P.q + 4); title = [T.checkpoint[0] + ' · ' + ch.t[0], T.checkpoint[1] + ' · ' + ch.t[1]]; }
     else if (kind === 'comeback') { const g = S().gate; if (!g) return null; queue = fromKeys(g.ids.filter(x => FR.lessonBy[x]).flatMap(x => lessonKeys(FR.lessonBy[x])), 10); title = T.comeback_t; }
     else if (kind === 'gender') {
