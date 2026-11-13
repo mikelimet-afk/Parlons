@@ -256,3 +256,8 @@ body.master .btn.primary { background:linear-gradient(180deg,#244aa6,#1d3a8a); b
 @property --ch { syntax:'<percentage>'; inherits:false; initial-value:0%; }
 .icon-btn.charging { background:conic-gradient(#c9a227 var(--ch), var(--card) 0); animation:charge 3s linear forwards; }
 @keyframes charge { to { --ch:100%; } }
+
+/* Online French classes: formal / informal halves of a card */
+.qa-side h4 { margin: .6em 0 .2em; }
+.qa-side p { margin: .2em 0; }
+.card hr { border: 0; border-top: 1px solid currentColor; opacity: .15; margin: .8em 0; }

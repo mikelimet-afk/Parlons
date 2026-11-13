@@ -45,9 +45,11 @@
   };
 
   // ---------- learn ----------
+  // Developer options (Master Mode only): link to the Online French classes page.
+  const classesBtn = () => '<button class="btn small" data-act="go" data-to="classes">🎓 ' + bi(['Online French classes', 'Cours de français en ligne']) + '</button>';
   V.learn = () => {
     const s = S(), nl = E.nextLesson(), left = E.spacingLeft();
-    let h = '<h1>' + tt('lessons') + '</h1><p class="mute">' + tt('learn_sub') + '</p>' + gateCard();
+    let h = '<h1>' + tt('lessons') + '</h1><p class="mute">' + tt('learn_sub') + '</p>' + (FR.master.on ? '<div class="col">' + classesBtn() + '</div>' : '') + gateCard();
     if (left > 0 && !s.gate) h += '<p class="note">⏳ ' + tt('spacing_note', { t: FR.dur(left) }) + '</p>';
     FR.COURSE.forEach((ch, ci) => {
       const unl = E.chUnlocked(ci), done = !!s.chapters[ch.id], nd = ch.lessons.filter(l => s.lessons[l.id]).length, all = nd === ch.lessons.length;
@@ -219,7 +221,7 @@
   const POS = { prep: ['preposition', 'préposition'], noun: ['noun', 'nom'], verb: ['verb', 'verbe'], adj: ['adjective', 'adjectif'], adv: ['adverb', 'adverbe'], phrase: ['phrase', 'expression'], interj: ['interjection', 'interjection'], num: ['number', 'nombre'], pron: ['pronoun', 'pronom'], conj: ['conjunction', 'conjonction'] };
   function dictList() {
     const q = FR.norm(dq.q.trim());
-    const all = FR.words.filter(w => (!dq.th || w.topic === dq.th) && (dq.f === 'all' || (dq.f === 'bonus' ? w.topic === 'bonus' : dq.f === 'other' ? !['noun', 'verb', 'adj'].includes(w.pos) && w.topic !== 'bonus' : w.pos === dq.f)) && (!q || FR.norm(w.fr).includes(q) || (!E.locked(w) && FR.norm(w.en).includes(q))))
+    const all = FR.words.filter(w => (!dq.th || FR.inTopic(w, dq.th)) && (dq.f === 'all' || (dq.f === 'bonus' ? w.topic === 'bonus' : dq.f === 'other' ? !['noun', 'verb', 'adj'].includes(w.pos) && w.topic !== 'bonus' : w.pos === dq.f)) && (!q || FR.norm(w.fr).includes(q) || (!E.locked(w) && FR.norm(w.en).includes(q))))
       .sort((a, b) => FR.norm(a.fr).localeCompare(FR.norm(b.fr)));
     if (!all.length) return '<p class="mute center">' + tt('no_results') + '</p>';
     const MAX = 120, ws = all.slice(0, MAX);
@@ -545,6 +547,7 @@
       '<section class="card"><h3>' + tt('voice') + '</h3>' + seg('voice', [[0.7, 'v_slow'], [0.9, 'v_normal'], [1, 'v_natural']]) + '<button class="btn small" data-act="say" data-text="Bonjour ! Comment allez-vous aujourd\'hui ?">🔊 ' + tt('test') + '</button></section>' +
       '<section class="card"><h3>' + tt('target') + '</h3><p class="mute small">' + tt('target_d') + '</p><input type="date" class="search" data-set="target" value="' + esc(st.target) + '"></section>' +
       '<section class="card"><h3>' + tt('data') + '</h3><p class="mute small">' + tt('data_d') + '</p><div class="row">' + btn('export', 'export', '', 'small') + '<label class="btn small">' + tt('import') + '<input type="file" accept="application/json,.json" data-chg="import" hidden></label>' + btn('reset', 'reset', '', 'small danger') + '</div></section>' +
+      (FR.master.on ? '<section class="card"><h3>' + bi(['Developer options', 'Options développeur']) + '</h3><div class="col">' + classesBtn() + '</div></section>' : '') +
       '<div class="col">' + btn('tips', 'go', 'data-to="tips"') + '</div><p class="mute center small">Parlons ! · v2</p>';
   };
   A.set = d => { S().settings[d.k] = ['spacing', 'voice', 'readPause'].includes(d.k) ? +d.v : d.v; FR.save(); FR.applySettings(); FR.shell(); FR.refresh(); if (d.k === 'sound' && d.v === 'on') FR.sfx(true); if (d.k === 'kb' && FR.kb) FR.kb.dismissed = false; };

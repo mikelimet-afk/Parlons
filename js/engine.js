@@ -172,7 +172,7 @@
       title = ids.length === 1 ? FR.lessonBy[ids[0]].t : T.practice_t; id = ids.join(',');
     }
     else if (kind === 'vocab') {
-      const ws = FR.words.filter(w => w.topic === d.topic);
+      const ws = FR.words.filter(w => FR.inTopic(w, d.topic));
       queue = fromKeys([...ws.map(w => 'w:' + w.fr), ...ws.filter(w => w.g === 'm' || w.g === 'f').map(w => 'n:' + w.fr)], P.q);
       title = FR.TOPICS[d.topic] || T.practice_t; id = d.topic;
     }

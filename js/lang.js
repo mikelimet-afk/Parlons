@@ -13,13 +13,16 @@
   // code: m / f / mf = noun with that gender, v verb, a adjective, d adverb, p phrase, c conjunction, r preposition, o pronoun, i interjection.
   const CODE = { m: ['noun', 'm'], f: ['noun', 'f'], mf: ['noun', 'mf'], v: ['verb', ''], a: ['adj', ''], d: ['adv', ''], p: ['phrase', ''], c: ['conj', ''], r: ['prep', ''], o: ['pron', ''], i: ['interj', ''], num: ['num', ''] };
   FR.TOPICS = {};
+  FR.inTopic = (w, k) => w.topic === k || !!(w.also && w.also.includes(k));
   (FR.DICT_MORE || []).forEach(raw => {
     let topic = '';
     raw.split('\n').forEach(l => {
       l = l.trim(); if (!l) return;
       if (l[0] === '#') { const h = l.slice(1).split('|'); topic = 'x:' + h[0]; FR.TOPICS[topic] = [h[1], h[2]]; return; }
       const [fr, en, code, ex, exEn, pron] = l.split('|');
-      if (!fr || !en || FR.wordBy[fr]) return;
+      if (!fr || !en) return;
+      // A word already in the dictionary still joins this theme, so themed packs stay complete.
+      if (FR.wordBy[fr]) { const o = FR.wordBy[fr]; if (o.topic !== topic && !(o.also || []).includes(topic)) (o.also || (o.also = [])).push(topic); return; }
       const c = CODE[code] || ['phrase', ''];
       const w = { fr, en, pos: c[0], g: c[1], pron: pron || '', ex: ex || '', exEn: exEn || '', note: '', topic };
       FR.words.push(w); FR.wordBy[fr] = w;
