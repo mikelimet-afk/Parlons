@@ -62,3 +62,15 @@ Before packaging, export PNG icons (192 px and 512 px) from `icon.svg` and list 
 ## Data
 
 Progress is stored in the browser's local storage on the device. Use *Settings → Your data → Export backup* before changing phone or browser.
+
+## Free AI tutor
+
+`js/free-llm.js` adds a free AI tutor (home card ✨, "Explain with AI" after each answer, and Settings → AI tutor):
+
+- **Chat** – grammar questions, corrections of your French, role-play conversations.
+- **AI practice** – generates new multiple-choice exercises on any topic.
+- **Explain with AI** – explains the question you just answered and why your answer was right or wrong.
+
+It works out of the box with **Pollinations.ai** (free, no account, no key). For better answers, open the AI ⚙ tab and paste a free key from
+**Google Gemini** (aistudio.google.com), **Groq** (console.groq.com) or **OpenRouter** (openrouter.ai), or point it at any OpenAI-compatible server such as Ollama.
+Keys are stored only in your browser. If a keyed provider fails, the app falls back to Pollinations automatically. AI needs an internet connection; the rest of the app stays offline.
