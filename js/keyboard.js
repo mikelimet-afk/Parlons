@@ -10,8 +10,17 @@
   const ACC = ['é', 'è', 'ê', 'à', 'â', 'ç', 'ù', 'û', 'î', 'ï', 'ô', 'œ', 'ë'];
   let inp = null, onEnter = null, shift = false, sym = false, el = null;
   const enabled = () => { const k = S().settings.kb || 'auto'; return k === 'on' || (k === 'auto' && matchMedia('(pointer: coarse)').matches); };
+  // Pin the keyboard to the visible screen width. While a page animation is running the layout
+  // viewport can briefly be wider than the phone, which made left:0/right:0 overshoot the screen.
+  function fit() {
+    if (!el) return;
+    if (matchMedia('(min-width:760px)').matches) { el.style.width = el.style.left = el.style.right = ''; return; }
+    const vv = window.visualViewport, w = Math.min(document.documentElement.clientWidth || innerWidth, vv ? vv.width : innerWidth);
+    el.style.right = 'auto'; el.style.left = (vv ? vv.offsetLeft : 0) + 'px'; el.style.width = w + 'px';
+  }
   function render() {
     if (!el) return;
+    fit();
     const lay = S().settings.kbLayout || 'azerty', rows = sym ? SYM : LAYOUT[lay];
     const key = (c, cls) => { const lab = c === '⇧' ? (shift ? '⬆' : '⇧') : shift && c.length === 1 ? c.toUpperCase() : c; return '<button type="button" class="kk' + (cls ? ' ' + cls : '') + (c === '⇧' && shift ? ' on' : '') + '" data-k="' + FR.esc(c) + '">' + FR.esc(lab) + '</button>'; };
     el.innerHTML = '<div class="kb-top"><button type="button" class="kk lay" data-k="⇄">' + (lay === 'azerty' ? 'AZERTY' : 'QWERTY') + ' ⇄</button><span class="kb-hint">' + FR.t('kb_hint') + '</span><button type="button" class="kk lay" data-k="✕">⌄</button></div>' +
@@ -40,6 +49,9 @@
       if (!el) {
         el = document.createElement('div'); el.className = 'kb'; el.id = 'kb'; document.body.appendChild(el);
         // pointerdown + preventDefault keeps the focus (and caret) in the text field.
+        addEventListener('resize', fit);
+        if (window.visualViewport) { visualViewport.addEventListener('resize', fit); visualViewport.addEventListener('scroll', fit); }
+        document.addEventListener('animationend', fit, true);
         el.addEventListener('pointerdown', ev => { const b = ev.target.closest('[data-k]'); ev.preventDefault(); if (b) { b.classList.add('hit'); setTimeout(() => b.classList.remove('hit'), 120); press(b.dataset.k); } });
       }
       render(); document.body.classList.add('kb-open');
