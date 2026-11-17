@@ -26,6 +26,7 @@
   });
 
   FR.act.ai = d => FreeLLM.open(d.tab || 'chat');
+  FR.act.aitoggle = d => { FreeLLM.setEnabled(d.v === '1'); FR.refresh(); };
   // "Explain with AI" on the answer feedback of a lesson / practice question.
   FR.act.aiexplain = () => {
     const ss = FR.state.session; if (!ss || !ss.cur) return;
