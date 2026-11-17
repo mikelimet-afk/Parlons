@@ -177,7 +177,34 @@
     '.q{border:1px solid var(--line);border-radius:14px;padding:10px 12px}.q h4{margin:0 0 8px;font-size:15px}' +
     '.o{display:block;width:100%;text-align:left;margin:5px 0;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:none}' +
     '.o.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,transparent)}.o.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,transparent)}' +
-    '.o[disabled]{cursor:default}.why{margin-top:6px;font-size:14px}.why.ok b{color:var(--ok)}.why.bad b{color:var(--bad)}';
+    '.o[disabled]{cursor:default}.why{margin-top:6px;font-size:14px}.why.ok b{color:var(--ok)}.why.bad b{color:var(--bad)}' +
+    /* motion: same feel as the host app (sheet slide-up, rise-in, pop on correct, shake on wrong) */
+    '.ov.open{animation:fIn .25s ease-out both}.ov.open .pn{animation:sheetIn .42s cubic-bezier(.2,.9,.25,1.08) both}' +
+    '.ov.closing{animation:fOut .22s ease-in both}.ov.closing .pn{animation:sheetOut .22s ease-in both}' +
+    '@media (min-width:700px){.ov.open .pn{animation-name:popIn}.ov.closing .pn{animation-name:popOut}}' +
+    '.bd.sw>*{animation:aSlide .32s cubic-bezier(.2,.8,.2,1) both}' +
+    '.in{animation:aUp .42s cubic-bezier(.2,.8,.2,1) both}.m.u.in{animation-name:aUser;transform-origin:100% 100%}' +
+    '.m.in:not(.u){animation-name:fbIn;animation-timing-function:cubic-bezier(.2,.9,.3,1.2);transform-origin:0 100%}' +
+    '.st.in>*{animation:aUp .42s cubic-bezier(.2,.8,.2,1) both}.st.in{animation:none}' +
+    '.st.in>:nth-child(2),.qs>:nth-child(2){animation-delay:.05s}.st.in>:nth-child(3),.qs>:nth-child(3){animation-delay:.1s}.st.in>:nth-child(4),.qs>:nth-child(4){animation-delay:.15s}.st.in>:nth-child(5),.qs>:nth-child(5){animation-delay:.2s}.st.in>:nth-child(n+6){animation-delay:.25s}' +
+    '.q.in{animation-name:aRise}.q.in:nth-of-type(5n+2){animation-delay:.07s}.q.in:nth-of-type(5n+3){animation-delay:.14s}.q.in:nth-of-type(5n+4){animation-delay:.21s}.q.in:nth-of-type(5n){animation-delay:.28s}' +
+    '.o,.st button,.tb,.go,.x{transition:transform .12s,background .2s,border-color .2s,opacity .2s}.o:active:not([disabled]),.st button:active,.tb:active,.go:active:not([disabled]){transform:scale(.97)}' +
+    '.o:not([disabled]):hover,.st button:hover{border-color:var(--acc)}' +
+    '.o.ok.hit{animation:pop .45s cubic-bezier(.3,1.7,.5,1)}.o.bad.hit{animation:shake .4s}.o.dim{opacity:.5}.why.in{animation:fbIn .4s cubic-bezier(.2,.9,.3,1.2) both}' +
+    '.dots{display:inline-flex;align-items:center;gap:5px;font-style:normal}.dots i{width:7px;height:7px;border-radius:50%;background:var(--mut);animation:blink 1.1s ease-in-out infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}.dots span{margin-left:4px;font-style:italic}' +
+    '.go.busy{position:relative;overflow:hidden}.go.busy:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);animation:shine 1.2s linear infinite}' +
+    '@keyframes fIn{from{opacity:0}}@keyframes fOut{to{opacity:0}}@keyframes sheetIn{from{transform:translateY(100%)}}@keyframes sheetOut{to{transform:translateY(100%)}}' +
+    '@keyframes popIn{from{opacity:0;transform:scale(.94) translateY(10px)}}@keyframes popOut{to{opacity:0;transform:scale(.96) translateY(8px)}}' +
+    '@keyframes aUp{from{opacity:0;transform:translateY(16px)}}@keyframes aSlide{from{opacity:0;transform:translateX(28px)}}@keyframes aRise{from{opacity:0;transform:translateY(40px) scale(.98)}}' +
+    '@keyframes aUser{from{opacity:0;transform:translateY(12px) scale(.9)}}@keyframes fbIn{from{opacity:0;transform:translateY(14px) scale(.98)}}' +
+    '@keyframes pop{40%{transform:scale(1.045)}}@keyframes shake{20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}' +
+    '@keyframes blink{0%,80%,100%{opacity:.25;transform:translateY(0)}40%{opacity:1;transform:translateY(-4px)}}@keyframes shine{from{transform:translateX(-100%)}to{transform:translateX(100%)}}' +
+    '.calm *,.calm *:before,.calm *:after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}' +
+    '@media (prefers-reduced-motion:reduce){.w *,.w *:before,.w *:after{animation-duration:.01ms!important;animation-delay:0s!important}}';
+  // Only things that are new since the last render animate, so redraws don't replay old messages.
+  var fresh = false;
+  function dots() { return '<div class="m dots in"><i></i><i></i><i></i><span>' + esc(T('thinking')) + '</span></div>'; }
+  function isNew(o) { if (o._seen) return ''; o._seen = 1; return ' in'; }
 
   function build() {
     if (root) return;
@@ -193,10 +220,21 @@
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('.ov').classList.contains('open')) close(); });
   }
   function $(s) { return sh.querySelector(s); }
-  function close() { if (sh) $('.ov').classList.remove('open'); }
+  var closeT = 0;
+  function close() {
+    if (!sh) return; var ov = $('.ov'); if (!ov.classList.contains('open')) return;
+    ov.classList.add('closing'); clearTimeout(closeT);
+    closeT = setTimeout(function () { ov.classList.remove('open', 'closing'); }, 220);
+  }
   function open(which) {
-    build(); tab = which || tab || 'chat';
-    $('.ov').classList.add('open');
+    build(); var ov = $('.ov'), was = ov.classList.contains('open') && !ov.classList.contains('closing'), prev = tab;
+    tab = which || tab || 'chat';
+    clearTimeout(closeT); ov.classList.remove('closing');
+    $('.w').classList.toggle('calm', !!(cfg.calm && (typeof cfg.calm === 'function' ? cfg.calm() : cfg.calm)));
+    // Opening the panel, or switching tab: let the whole tab's content animate in once.
+    fresh = true;
+    var bd = $('.bd'); bd.classList.remove('sw'); if (was && prev !== tab) { void bd.offsetWidth; bd.classList.add('sw'); }
+    ov.classList.add('open');
     $('.hd b').textContent = '✨ ' + cfg.title;
     var tabs = [['chat', T('chat')]];
     if (cfg.practice) tabs.push(['practice', T('practice')]);
@@ -210,12 +248,13 @@
   function renderChat() {
     var bd = $('.bd'), ft = $('.ft');
     var starters = (typeof cfg.starters === 'function' ? cfg.starters() : cfg.starters) || [];
-    bd.innerHTML = (history.length ? '' : '<div class="m">' + md(cfg.greeting ? (typeof cfg.greeting === 'function' ? cfg.greeting() : cfg.greeting) : '👋') + '</div>' +
-      (starters.length ? '<div class="st">' + starters.map(function (s) { return '<button>' + esc(s) + '</button>'; }).join('') + '</div>' : '')) +
-      history.map(function (m) { return '<div class="m' + (m.role === 'user' ? ' u' : '') + '">' + (m.role === 'user' ? esc(m.shown || m.content).replace(/\n/g, '<br>') : md(m.content)) + '</div>'; }).join('') +
-      (busy ? '<div class="m dots">' + T('thinking') + '</div>' : '') + '<p class="mut">' + esc(T('disclaimer')) + '</p>';
+    var f = fresh ? ' in' : ''; fresh = false;
+    bd.innerHTML = (history.length ? '' : '<div class="m' + f + '">' + md(cfg.greeting ? (typeof cfg.greeting === 'function' ? cfg.greeting() : cfg.greeting) : '👋') + '</div>' +
+      (starters.length ? '<div class="st' + f + '">' + starters.map(function (s) { return '<button>' + esc(s) + '</button>'; }).join('') + '</div>' : '')) +
+      history.map(function (m) { return '<div class="m' + (m.role === 'user' ? ' u' : '') + isNew(m) + '">' + (m.role === 'user' ? esc(m.shown || m.content).replace(/\n/g, '<br>') : md(m.content)) + '</div>'; }).join('') +
+      (busy ? dots() : '') + '<p class="mut">' + esc(T('disclaimer')) + '</p>';
     Array.prototype.forEach.call(bd.querySelectorAll('.st button'), function (b) { b.onclick = function () { send(b.textContent); }; });
-    ft.innerHTML = '<textarea placeholder="' + esc(T('ph')) + '" rows="1"></textarea><button class="go"' + (busy ? ' disabled' : '') + '>' + esc(T('send')) + '</button>' +
+    ft.innerHTML = '<textarea placeholder="' + esc(T('ph')) + '" rows="1"></textarea><button class="go' + (busy ? ' busy' : '') + '"' + (busy ? ' disabled' : '') + '>' + esc(T('send')) + '</button>' +
       (history.length ? '<button class="go alt" title="' + esc(T('clear')) + '">↺</button>' : '');
     var ta = ft.querySelector('textarea');
     ft.querySelector('.go').onclick = function () { send(ta.value); };
@@ -255,21 +294,24 @@
     var bd = $('.bd'), ft = $('.ft');
     var topics = (typeof cfg.topics === 'function' ? cfg.topics() : cfg.topics) || [];
     var score = quiz.filter(function (q) { return !q.err && q.pick != null; }), right = score.filter(function (q) { return q.pick === q.answer; }).length;
-    bd.innerHTML = (quiz.length ? '' : (topics.length ? '<div class="st">' + topics.map(function (s) { return '<button>' + esc(s) + '</button>'; }).join('') + '</div>' : '')) +
+    var f = fresh ? ' in' : ''; fresh = false;
+    bd.innerHTML = (quiz.length ? '' : (topics.length ? '<div class="st' + f + '">' + topics.map(function (s) { return '<button>' + esc(s) + '</button>'; }).join('') + '</div>' : '')) +
       quiz.map(function (q, qi) {
-        if (q.err) return '<div class="m err">⚠️ ' + esc(T('fail')) + '<br><code>' + esc(q.err) + '</code></div>';
-        var done = q.pick != null;
-        return '<div class="q"><h4>' + (qi + 1) + '. ' + md(q.q).replace(/^<p>|<\/p>$/g, '') + '</h4>' + q.options.map(function (o, i) {
-          var c = done ? (i === q.answer ? ' ok' : i === q.pick ? ' bad' : '') : '';
+        if (q.err) return '<div class="m err' + isNew(q) + '">⚠️ ' + esc(T('fail')) + '<br><code>' + esc(q.err) + '</code></div>';
+        var done = q.pick != null, hit = q._hit; q._hit = 0;
+        var a = isNew(q) || f;
+        return '<div class="q' + a + '"><h4>' + (qi + 1) + '. ' + md(q.q).replace(/^<p>|<\/p>$/g, '') + '</h4>' + q.options.map(function (o, i) {
+          var c = done ? (i === q.answer ? ' ok' : i === q.pick ? ' bad' : ' dim') : '';
+          if (hit && (i === q.answer || i === q.pick)) c += ' hit';
           return '<button class="o' + c + '" data-q="' + qi + '" data-i="' + i + '"' + (done ? ' disabled' : '') + '>' + String.fromCharCode(65 + i) + ') ' + esc(o) + '</button>';
-        }).join('') + (done ? '<div class="why ' + (q.pick === q.answer ? 'ok' : 'bad') + '"><b>' + esc(q.pick === q.answer ? T('correct') : T('wrong') + String.fromCharCode(65 + q.answer)) + '</b> ' + md(q.why || '') + '</div>' : '') + '</div>';
-      }).join('') + (busy ? '<div class="m dots">' + T('thinking') + '</div>' : '') +
+        }).join('') + (done ? '<div class="why ' + (q.pick === q.answer ? 'ok' : 'bad') + (hit ? ' in' : '') + '"><b>' + esc(q.pick === q.answer ? T('correct') : T('wrong') + String.fromCharCode(65 + q.answer)) + '</b> ' + md(q.why || '') + '</div>' : '') + '</div>';
+      }).join('') + (busy ? dots() : '') +
       (quiz.length ? '<p class="mut">' + T('score') + ': ' + right + '/' + score.length + ' · ' + esc(T('disclaimer')) + '</p>' : '<p class="mut">' + esc(T('disclaimer')) + '</p>');
     Array.prototype.forEach.call(bd.querySelectorAll('.st button'), function (b) { b.onclick = function () { generate(b.textContent); }; });
     Array.prototype.forEach.call(bd.querySelectorAll('.o'), function (b) {
-      b.onclick = function () { var q = quiz[+b.dataset.q]; if (q.pick == null) { q.pick = +b.dataset.i; if (cfg.onAnswer) try { cfg.onAnswer(q.pick === q.answer, q); } catch (e) {} renderPractice(); } };
+      b.onclick = function () { var q = quiz[+b.dataset.q]; if (q.pick == null) { q.pick = +b.dataset.i; q._hit = 1; if (cfg.onAnswer) try { cfg.onAnswer(q.pick === q.answer, q); } catch (e) {} renderPractice(); } };
     });
-    ft.innerHTML = '<input placeholder="' + esc(T('topicPh')) + '" aria-label="' + esc(T('topic')) + '" value="' + esc(quiz.topic || '') + '"><button class="go"' + (busy ? ' disabled' : '') + '>' + esc(quiz.length ? T('more') : T('gen')) + '</button>';
+    ft.innerHTML = '<input placeholder="' + esc(T('topicPh')) + '" aria-label="' + esc(T('topic')) + '" value="' + esc(quiz.topic || '') + '"><button class="go' + (busy ? ' busy' : '') + '"' + (busy ? ' disabled' : '') + '>' + esc(quiz.length ? T('more') : T('gen')) + '</button>';
     var inp = ft.querySelector('input');
     ft.querySelector('.go').onclick = function () { generate(inp.value); };
     inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') generate(inp.value); });
