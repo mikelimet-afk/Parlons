@@ -537,6 +537,18 @@
 
   // ---------- settings ----------
   const seg = (k, opts) => '<div class="seg wrap">' + opts.map(o => '<button class="' + (String(S().settings[k]) === String(o[0]) ? 'on' : '') + '" data-act="set" data-k="' + k + '" data-v="' + o[0] + '">' + (o[2] ? esc(o[1]) : tt(o[1])) + '</button>').join('') + '</div>';
+  const voiceSelect = () => {
+    const vs = FR.frVoices(), cur = S().settings.voiceName || '';
+    if (!vs.length) return '<p class="mute small">' + tt('no_voice') + '</p>';
+    const g = v => { const x = FR.voiceGender(v); return x === 'm' ? ' · ♂' : x === 'f' ? ' · ♀' : ''; };
+    return '<select class="search" data-chg="voicePick"><option value="">' + esc(t('v_auto')) + '</option>' +
+      vs.map(v => '<option value="' + esc(v.name) + '"' + (v.name === cur ? ' selected' : '') + '>' + esc(v.name.replace(/^Microsoft |\s*-\s*French.*$/g, '') + ' (' + v.lang + ')' + g(v)) + '</option>').join('') + '</select>';
+  };
+  const voiceNote = () => {
+    const st = S().settings; if (st.voiceName || st.voiceGender !== 'm' || !FR.frVoices().length) return '';
+    const pv = FR.pickVoice(); return pv.pitch < 1 ? '<p class="hint">' + tt('v_nomale') + '</p>' : '';
+  };
+  FR.chg.voicePick = el => { S().settings.voiceName = el.value; FR.save(); FR.refresh(); FR.speak('Bonjour ! Comment allez-vous aujourd\'hui ?'); };
   V.settings = () => {
     const st = S().settings;
     return '<h1>' + tt('settings') + '</h1>' +
@@ -546,14 +558,18 @@
       '<section class="card"><h3>' + tt('spacing') + '</h3><p class="mute small">' + tt('spacing_d') + '</p>' + seg('spacing', [[0, 'sp_none'], [30, '30 min', 1], [60, '1 h', 1], [240, '4 h', 1], [720, '12 h', 1], [1440, '24 h', 1]]) + '</section>' +
       '<section class="card"><h3>' + tt('reminder') + '</h3><p class="mute small">' + tt('reminder_d') + '</p><div class="row"><input type="time" class="search" data-set="remind" value="' + esc(st.remind) + '">' + btn('notif_on', 'notif', '', 'small') + '</div></section>' +
       '<section class="card"><h3>' + tt('kb_set') + '</h3><p class="mute small">' + tt('kb_set_d') + '</p>' + seg('kb', [['auto', 'kb_auto'], ['on', 'kb_on'], ['off', 'kb_off']]) + seg('kbLayout', [['azerty', 'AZERTY', 1], ['qwerty', 'QWERTY', 1]]) + '</section>' +
-      '<section class="card"><h3>' + tt('voice') + '</h3>' + seg('voice', [[0.7, 'v_slow'], [0.9, 'v_normal'], [1, 'v_natural']]) + '<button class="btn small" data-act="say" data-text="Bonjour ! Comment allez-vous aujourd\'hui ?">🔊 ' + tt('test') + '</button></section>' +
+      '<section class="card"><h3>' + tt('voice_h') + '</h3><p class="mute small">' + tt('voice_d') + '</p>' +
+        '<h4>' + tt('v_style') + '</h4>' + seg('voiceStyle', [['natural', 'v_nat'], ['standard', 'v_std']]) +
+        '<h4>' + tt('v_gender') + '</h4>' + seg('voiceGender', [['f', 'v_f'], ['m', 'v_m']]) + voiceNote() +
+        '<h4>' + tt('v_pick') + '</h4>' + voiceSelect() +
+        '<h4>' + tt('voice') + '</h4>' + seg('voice', [[0.7, 'v_slow'], [0.9, 'v_normal'], [1, 'v_natural']]) + '<button class="btn small" data-act="say" data-text="Bonjour ! Comment allez-vous aujourd\'hui ?">🔊 ' + tt('test') + '</button></section>' +
       '<section class="card"><h3>' + tt('target') + '</h3><p class="mute small">' + tt('target_d') + '</p><input type="date" class="search" data-set="target" value="' + esc(st.target) + '"></section>' +
       '<section class="card"><h3>✨ ' + bi(['AI tutor', 'Tuteur IA']) + '</h3><p class="mute small">' + bi(['Works free with no key. For smarter answers, add a free Gemini, Groq or OpenRouter key.', 'Gratuit sans clé. Pour de meilleures réponses, ajoutez une clé gratuite Gemini, Groq ou OpenRouter.']) + '</p>' + '<button class="btn small" data-act="ai" data-tab="settings">⚙ ' + bi(['AI settings', 'Réglages IA']) + '</button></section>' +
       '<section class="card"><h3>' + tt('data') + '</h3><p class="mute small">' + tt('data_d') + '</p><div class="row">' + btn('export', 'export', '', 'small') + '<label class="btn small">' + tt('import') + '<input type="file" accept="application/json,.json" data-chg="import" hidden></label>' + btn('reset', 'reset', '', 'small danger') + '</div></section>' +
       (FR.master.on ? '<section class="card"><h3>' + bi(['Developer options', 'Options développeur']) + '</h3><div class="col">' + classesBtn() + '</div></section>' : '') +
       '<div class="col">' + btn('tips', 'go', 'data-to="tips"') + '</div><p class="mute center small">Parlons ! · v2</p>';
   };
-  A.set = d => { S().settings[d.k] = ['spacing', 'voice', 'readPause'].includes(d.k) ? +d.v : d.v; FR.save(); FR.applySettings(); FR.shell(); FR.refresh(); if (d.k === 'sound' && d.v === 'on') FR.sfx(true); if (d.k === 'kb' && FR.kb) FR.kb.dismissed = false; };
+  A.set = d => { S().settings[d.k] = ['spacing', 'voice', 'readPause'].includes(d.k) ? +d.v : d.v; if (d.k === 'voiceStyle' || d.k === 'voiceGender') S().settings.voiceName = ''; FR.save(); FR.applySettings(); FR.shell(); FR.refresh(); if (d.k === 'sound' && d.v === 'on') FR.sfx(true); if (d.k === 'kb' && FR.kb) FR.kb.dismissed = false; };
   A.lang = () => A.set({ k: 'lang', v: FR.fr() ? 'en' : 'fr' });
   A.notif = () => { if (!('Notification' in window)) { FR.toast(tt('notif_no')); return; } Notification.requestPermission().then(p => FR.toast(tt(p === 'granted' ? 'notif_ok' : 'notif_no'))); };
   A.export = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([FR.exportData()], { type: 'application/json' })); a.download = 'parlons-backup-' + FR.dayStr() + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };

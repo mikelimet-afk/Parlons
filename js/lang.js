@@ -180,14 +180,46 @@
 
   // ---------- speech ----------
   FR.canSpeak = () => 'speechSynthesis' in window;
+  // Voices come from the device/browser. Rank the French ones so "natural" picks neural/online
+  // voices (Microsoft Natural, Google network, Apple Enhanced/Premium) and guess each one's gender.
+  const MALE = /henri|r[eé]my|alain|claude|j[eé]r[oô]me|maurice|yves|thomas|jacques|nicolas|daniel|paul|antoine|jean|mathieu|louis|fabrice|guillaume|s[eé]bastien|fr[eé]d[eé]ric|eddy|grandpa|reed|rocko|gilles|lucien|olivier|arnaud|pierre|fr-[a-z]{2}-x-fr[bd]|male\b|homme/i;
+  const FEMALE = /denise|vivienne|[eé]lo[iï]se|brigitte|c[eé]leste|coralie|jacqueline|jos[eé]phine|yvette|am[eé]lie|audrey|aur[eé]lie|marie|virginie|julie|hortense|chantal|sylvie|caroline|ariane|l[eé]a\b|c[eé]line|mathilde|juliette|sandy|shelley|grandma|flo\b|google fran|fr-[a-z]{2}-x-(fr[ac]|vlf)|female|femme/i;
+  FR.voiceGender = v => MALE.test(v.name) ? 'm' : FEMALE.test(v.name) ? 'f' : '';
+  const quality = v => {
+    const n = v.name; let q = 0;
+    if (/natural|neural|premium|wavenet|journey|studio/i.test(n)) q += 6;
+    if (/enhanced|online|network|multilingual/i.test(n)) q += 4;
+    if (/google/i.test(n)) q += 3;
+    if (!v.localService) q += 1;
+    if (/compact|espeak|robot|novelty|bad news|bells|bubbles|cellos|organ|trinoids|whisper|zarvox|superstar|wobble|jester/i.test(n)) q -= 8;
+    if (/^fr[-_]FR/i.test(v.lang)) q += 2;
+    return q;
+  };
+  FR.frVoices = () => FR.canSpeak() ? speechSynthesis.getVoices().filter(x => /^fr/i.test(x.lang)) : [];
+  FR.pickVoice = () => {
+    const st = FR.state.settings, all = FR.frVoices();
+    if (!all.length) return { voice: null, pitch: 1 };
+    if (st.voiceName) { const v = all.find(x => x.name === st.voiceName); if (v) return { voice: v, pitch: 1 }; }
+    const natural = (st.voiceStyle || 'natural') === 'natural', want = st.voiceGender || 'f';
+    const score = v => (natural ? quality(v) * 2 : (/^fr[-_]FR/i.test(v.lang) ? 2 : 0) - (/compact|espeak/i.test(v.name) ? 8 : 0)) + (FR.voiceGender(v) === want ? 20 : FR.voiceGender(v) ? -20 : 0);
+    const best = all.slice().sort((a, b) => score(b) - score(a))[0];
+    // No male voice installed: fall back to a deeper pitch on the best voice.
+    const pitch = want === 'm' && FR.voiceGender(best) !== 'm' ? 0.72 : 1;
+    return { voice: best, pitch };
+  };
+  if (FR.canSpeak()) { speechSynthesis.getVoices(); speechSynthesis.addEventListener && speechSynthesis.addEventListener('voiceschanged', () => { if (document.body.dataset.r === 'settings' && FR.refresh) FR.refresh(); }); }
   FR.speak = (text, onend) => {
     if (!FR.canSpeak()) { FR.toast(FR.tt('no_voice')); if (onend) onend(); return; }
     try {
       speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(String(text).replace(/_+/g, ' '));
-      u.lang = 'fr-FR'; u.rate = FR.state.settings.voice || 0.9;
-      const v = speechSynthesis.getVoices().find(x => /^fr/i.test(x.lang));
-      if (v) u.voice = v;
+      const st = FR.state.settings, natural = (st.voiceStyle || 'natural') === 'natural';
+      let t = String(text).replace(/_+/g, ' ');
+      // Natural mode: tidy spacing around French punctuation so engines pause like a speaker would.
+      if (natural) t = t.replace(/\s*([!?;:])/g, ' $1').replace(/\s*…\s*/g, '… ').replace(/\s+/g, ' ').trim();
+      const u = new SpeechSynthesisUtterance(t);
+      const pv = FR.pickVoice();
+      u.lang = pv.voice ? pv.voice.lang : 'fr-FR'; u.rate = st.voice || 0.9; u.pitch = pv.pitch;
+      if (pv.voice) u.voice = pv.voice;
       if (onend) { u.onend = onend; u.onerror = onend; }
       speechSynthesis.speak(u);
     } catch (e) { if (onend) onend(); }
