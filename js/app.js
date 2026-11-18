@@ -84,5 +84,11 @@
   render(true);
   setInterval(tick, 30000);
   setTimeout(remind, 1500);
-  if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+  // Check for a new version on every launch (updateViaCache: none skips the browser cache); when a new
+  // version takes over an already-running app, reload once so the new files are used straight away.
+  if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
+    const had = !!navigator.serviceWorker.controller; let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (had && !reloaded) { reloaded = true; location.reload(); } });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update()).catch(() => {});
+  }
 })();
