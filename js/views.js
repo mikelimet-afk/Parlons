@@ -160,7 +160,7 @@
     ss.cur = Object.assign({ ok, pick, praise: PRAISE[Math.floor(Math.random() * PRAISE.length)], nudge: E.tick(ss) }, extra || {});
     FR.save(); FR.refresh();
     if (ok) { const el = document.querySelector('.opt.ok, .line.ok, .big-in.ok'); FR.burst(el); if (!q.retry) FR.floatXp(el, '+5 XP'); }
-    const fb = document.querySelector('.fb'); if (fb && fb.scrollIntoView) fb.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    FR.smooth.to(document.querySelector('.fb'));
   }
   A.ans = d => { const ss = S().session; if (!ss || ss.cur) return; resolve(+d.i === ss.queue[ss.i].a, +d.i); };
   A.tile = d => { const ss = S().session; if (!ss || ss.cur) return; ss.build.push(+d.i); FR.save(); FR.refresh(); };
@@ -427,7 +427,7 @@
     const P = FR.findText(rd.id), me = rd;
     if (!P || rd.i >= P.s.length) { rdStop(); return; }
     rdPaint();
-    const el = document.querySelectorAll('.passage .sent')[rd.i]; if (el && el.scrollIntoView) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    FR.smooth.to(document.querySelectorAll('.passage .sent')[rd.i], true);
     FR.speak(P.s[rd.i][0], () => {
       if (rd !== me || rd.paused) return;
       rd.i++;

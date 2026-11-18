@@ -24,10 +24,11 @@
     document.body.dataset.r = r;
     v.innerHTML = FR.views[r](param, fresh);
     if (fresh || anim) { v.className = ''; void v.offsetWidth; v.className = 'enter a-' + (fresh ? ANIM[r] || 'up' : 'q'); }
-    if (fresh) window.scrollTo(0, 0);
+    if (fresh) FR.smooth.top();
     banner(r, param);
     document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.to === r || (r === 'lesson' && b.dataset.to === 'learn')));
     if (FR.after[r]) FR.after[r](param, fresh);
+    FR.smooth.reveal();
   }
   FR.refresh = anim => render(false, anim);
   FR.go = to => { if (location.hash === '#/' + to) render(true); else location.hash = '#/' + to; };
@@ -43,6 +44,7 @@
     const st = S().settings;
     document.body.dataset.theme = FR.master && FR.master.on ? 'napoleon' : st.theme;
     document.body.classList.toggle('calm', st.motion === 'calm');
+    if (FR.smooth) FR.smooth.sync();
     document.documentElement.lang = st.lang;
   };
 
@@ -84,11 +86,19 @@
   render(true);
   setInterval(tick, 30000);
   setTimeout(remind, 1500);
-  // Check for a new version on every launch (updateViaCache: none skips the browser cache); when a new
-  // version takes over an already-running app, reload once so the new files are used straight away.
+  // register() checks for a new version on every launch (updateViaCache: none skips the browser cache).
+  // When a new version takes over a running app, reload once, but never in the middle of an exercise:
+  // wait until the user is on a calm screen (or comes back to the app).
   if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
-    const had = !!navigator.serviceWorker.controller; let reloaded = false;
-    navigator.serviceWorker.addEventListener('controllerchange', () => { if (had && !reloaded) { reloaded = true; location.reload(); } });
-    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => r.update()).catch(() => {});
+    const had = !!navigator.serviceWorker.controller; let pending = false, reloaded = false;
+    const busy = () => (FR.master && FR.master.on) || /^#\/(session|typing|exam\/run|read\/)/.test(location.hash) || !!document.querySelector('.sheet, .cele-card');
+    const tryReload = () => { if (pending && !reloaded && !busy()) { reloaded = true; location.reload(); } };
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (had) { pending = true; tryReload(); } });
+    window.addEventListener('hashchange', () => setTimeout(tryReload, 0));
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) tryReload(); });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then(r => {
+      // Long-open apps (installed on a phone) also look for updates when brought back to the front.
+      document.addEventListener('visibilitychange', () => { if (!document.hidden) r.update().catch(() => {}); });
+    }).catch(() => {});
   }
 })();
