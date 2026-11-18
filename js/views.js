@@ -546,6 +546,11 @@
   };
 
   // ---------- settings ----------
+  // Each theme shown as three button-like dots in its colours.
+  const THEMES = [['simple', '#3b6cf6', '#f59e3d', '#17915a'], ['minimal', '#111111', '#8a8a8a', '#e6e6e6'], ['frenchy', '#24408e', '#ffffff', '#c8102e'],
+    ['botanical', '#b9a6e0', '#9aa86a', '#d9cdf0'], ['harvest', '#b7a8e0', '#c9711f', '#8f9a63'], ['coral', '#1f6fc4', '#f2743f', '#5f6168'],
+    ['caramel', '#f4ebc4', '#c96a1c', '#7a5c49'], ['nonchalant', '#ffffff', '#f58a5f', '#1d2747']];
+  const themePicker = () => '<div class="themes">' + THEMES.map(x => '<button class="th-pick' + (S().settings.theme === x[0] ? ' on' : '') + '" data-act="set" data-k="theme" data-v="' + x[0] + '"><span class="th-dots">' + x.slice(1).map(c => '<i style="background:' + c + '"></i>').join('') + '</span>' + tt('th_' + x[0]) + '</button>').join('') + '</div>';
   const seg = (k, opts) => '<div class="seg wrap">' + opts.map(o => '<button class="' + (String(S().settings[k]) === String(o[0]) ? 'on' : '') + '" data-act="set" data-k="' + k + '" data-v="' + o[0] + '">' + (o[2] ? esc(o[1]) : tt(o[1])) + '</button>').join('') + '</div>';
   const voiceSelect = () => {
     const vs = FR.frVoices(), cur = S().settings.voiceName || '';
@@ -572,7 +577,7 @@
     const st = S().settings;
     return '<h1>' + tt('settings') + '</h1>' +
       '<section class="card"><h3>' + tt('language') + '</h3>' + seg('lang', [['en', 'English', 1], ['fr', 'Français', 1]]) + '<p class="hint">' + tt('hint_press') + '</p></section>' +
-      '<section class="card"><h3>' + tt('theme') + '</h3>' + seg('theme', [['simple', 'th_simple'], ['minimal', 'th_minimal'], ['frenchy', 'th_frenchy']]) + '<h4>' + tt('motion') + '</h4>' + seg('motion', [['full', 'mo_full'], ['calm', 'mo_calm']]) + '<h4>' + tt('sounds') + '</h4>' + seg('sound', [['on', 'snd_on'], ['off', 'snd_off']]) + '</section>' +
+      '<section class="card"><h3>' + tt('theme') + '</h3>' + themePicker() + '<h4>' + tt('motion') + '</h4>' + seg('motion', [['full', 'mo_full'], ['calm', 'mo_calm']]) + '<h4>' + tt('sounds') + '</h4>' + seg('sound', [['on', 'snd_on'], ['off', 'snd_off']]) + '</section>' +
       '<section class="card"><h3>' + tt('pacing') + '</h3>' + seg('pacing', [['auto', 'p_auto'], ['easy', 'p_easy'], ['medium', 'p_medium'], ['hard', 'p_hard']]) + '<p class="mute small">' + tt('pd_' + st.pacing) + '</p></section>' +
       '<section class="card"><h3>' + tt('spacing') + '</h3><p class="mute small">' + tt('spacing_d') + '</p>' + seg('spacing', [[0, 'sp_none'], [30, '30 min', 1], [60, '1 h', 1], [240, '4 h', 1], [720, '12 h', 1], [1440, '24 h', 1]]) + '</section>' +
       '<section class="card"><h3>' + tt('reminder') + '</h3><p class="mute small">' + tt('reminder_d') + '</p><div class="row"><input type="time" class="search" data-set="remind" value="' + esc(st.remind) + '">' + btn('notif_on', 'notif', '', 'small') + '</div></section>' +
