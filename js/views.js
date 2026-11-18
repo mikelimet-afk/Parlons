@@ -40,8 +40,8 @@
       '<button class="streak' + (lit ? ' lit' : '') + '" data-act="glance"><span class="flame">🔥</span><b>' + st.count + '</b><small>' + tt('streak') + '</small></button></div>' +
       '<div class="bar"><i style="width:' + Math.min(100, pc(day.xp, goal)) + '%"></i></div><small class="mute">' + day.xp + ' / ' + goal + ' XP · ' + tt('today_goal') + '</small></section>' +
       gateCard() + (s.gate ? '' : FR.stepCard(E.nextStep())) +
-      '<section class="card"><h3>✨ ' + bi(['Free AI tutor', 'Tuteur IA gratuit']) + '</h3><p class="mute">' + bi(['Ask questions, get your French corrected, or generate new practice. No account needed.', 'Posez des questions, faites corriger votre français ou créez de nouveaux exercices. Sans compte.']) + '</p><div class="row">' +
-      '<button class="btn primary" data-act="ai" data-tab="chat">💬 ' + bi(['Chat', 'Discuter']) + '</button><button class="btn" data-act="ai" data-tab="practice">🎯 ' + bi(['AI practice', 'Exercices IA']) + '</button></div></section>' +
+      (FR.aiOn() ? '<section class="card"><h3>✨ ' + bi(['Free AI tutor', 'Tuteur IA gratuit']) + '</h3><p class="mute">' + bi(['Ask questions, get your French corrected, or generate new practice. No account needed.', 'Posez des questions, faites corriger votre français ou créez de nouveaux exercices. Sans compte.']) + '</p><div class="row">' +
+      '<button class="btn primary" data-act="ai" data-tab="chat">💬 ' + bi(['Chat', 'Discuter']) + '</button><button class="btn" data-act="ai" data-tab="practice">🎯 ' + bi(['AI practice', 'Exercices IA']) + '</button></div></section>' : '') +
       '<h2>' + tt('explore') + '</h2><div class="grid stagger">' + tiles + '</div>' +
       (left > 0 ? '<p class="mute center small">' + tt('target_left', { n: left, d: s.settings.target }) + '</p>' : '');
   };
@@ -126,7 +126,7 @@
         (cur.accent ? '<p class="accent-note">✍️ ' + tt('type_accent') + ' <b lang="fr" class="acc-w">' + cur.html + '</b></p>' : '') +
         (q.why ? '<p>' + bi(q.why) + '</p>' : '') + (ex ? '<div class="ex ex-say"><p><span lang="fr">' + esc(ex[0]) + '</span>' + (ex[1] ? '<br><span class="mute">' + esc(ex[1]) + '</span>' : '') + '</p><button class="mini sayw" data-act="say" data-text="' + esc(ex[0]) + '" aria-label="listen to the sentence">🔊 ' + bi(['sentence', 'phrase']) + '</button></div>' : '') +
         (cur.nudge ? '<p class="nudge">☕ ' + tt(cur.nudge) + '</p>' : '') +
-        '<div class="row"><button class="btn primary" data-act="next">' + tt('continue') + '</button><button class="btn small" data-act="aiexplain">✨ ' + bi(['Explain with AI', 'Expliquer avec l’IA']) + '</button></div></div>';
+        '<div class="row"><button class="btn primary" data-act="next">' + tt('continue') + '</button>' + (FR.aiOn() ? '<button class="btn small" data-act="aiexplain">✨ ' + bi(['Explain with AI', 'Expliquer avec l’IA']) + '</button>' : '') + '</div></div>';
     }
     return '<div class="sess-h"><button class="x" data-act="go" data-to="home" aria-label="leave">✕</button><div class="bar"><i style="width:' + pc(ss.i + (cur ? 1 : 0), n) + '%"></i></div><small>' + (ss.i + 1) + '/' + n + '</small></div>' +
       '<small class="eyebrow">' + bi(ss.title) + '</small><div class="qcard">' + body + '</div>' +
@@ -589,12 +589,12 @@
         '<h4>' + tt('v_pick') + '</h4>' + voiceSelect() +
         '<h4>' + tt('voice') + '</h4>' + seg('voice', [[0.7, 'v_slow'], [0.9, 'v_normal'], [1, 'v_natural']]) + '<button class="btn small" data-act="say" data-text="Bonjour ! Comment allez-vous aujourd\'hui ?">🔊 ' + tt('test') + '</button></section>' +
       '<section class="card"><h3>' + tt('target') + '</h3><p class="mute small">' + tt('target_d') + '</p><input type="date" class="search" data-set="target" value="' + esc(st.target) + '"></section>' +
-      '<section class="card"><h3>✨ ' + bi(['AI tutor', 'Tuteur IA']) + '</h3><p class="mute small">' + bi(['Works free with no key. For smarter answers, add a free Gemini, Groq or OpenRouter key.', 'Gratuit sans clé. Pour de meilleures réponses, ajoutez une clé gratuite Gemini, Groq ou OpenRouter.']) + '</p>' + '<button class="btn small" data-act="ai" data-tab="settings">⚙ ' + bi(['AI settings', 'Réglages IA']) + '</button></section>' +
+      '<section class="card"><h3>✨ ' + bi(['AI tutor', 'Tuteur IA']) + '</h3><p class="mute small">' + bi(['Works free with no key. For smarter answers, add a free Gemini, Groq or OpenRouter key.', 'Gratuit sans clé. Pour de meilleures réponses, ajoutez une clé gratuite Gemini, Groq ou OpenRouter.']) + '</p>' + '' + seg('ai', [['on', 'ai_on'], ['off', 'ai_off']]) + (FR.aiOn() ? '<button class="btn small" data-act="ai" data-tab="settings">⚙ ' + bi(['AI settings', 'Réglages IA']) + '</button>' : '<p class="hint">' + tt('ai_hidden') + '</p>') + '</section>' +
       '<section class="card"><h3>' + tt('data') + '</h3><p class="mute small">' + tt('data_d') + '</p><div class="row">' + btn('export', 'export', '', 'small') + '<label class="btn small">' + tt('import') + '<input type="file" accept="application/json,.json" data-chg="import" hidden></label>' + btn('reset', 'reset', '', 'small danger') + '</div></section>' +
       (FR.master.on ? '<section class="card"><h3>' + bi(['Developer options', 'Options développeur']) + '</h3><div class="col">' + classesBtn() + '</div></section>' : '') +
       '<div class="col">' + btn('tips', 'go', 'data-to="tips"') + '</div><p class="mute center small">Parlons ! · v2</p>';
   };
-  A.set = d => { S().settings[d.k] = ['spacing', 'voice', 'readPause'].includes(d.k) ? +d.v : d.v; if (d.k === 'voiceStyle' || d.k === 'voiceGender' || d.k === 'voiceAccent') S().settings.voiceName = ''; FR.save(); FR.applySettings(); FR.shell(); FR.refresh(); if (d.k === 'sound' && d.v === 'on') FR.sfx(true); if (d.k === 'kb' && FR.kb) FR.kb.dismissed = false; };
+  A.set = d => { if (d.k === 'ai' && d.v === 'off' && window.FreeLLM) FreeLLM.close(); S().settings[d.k] = ['spacing', 'voice', 'readPause'].includes(d.k) ? +d.v : d.v; if (d.k === 'voiceStyle' || d.k === 'voiceGender' || d.k === 'voiceAccent') S().settings.voiceName = ''; FR.save(); FR.applySettings(); FR.shell(); FR.refresh(); if (d.k === 'sound' && d.v === 'on') FR.sfx(true); if (d.k === 'kb' && FR.kb) FR.kb.dismissed = false; };
   A.lang = () => A.set({ k: 'lang', v: FR.fr() ? 'en' : 'fr' });
   A.notif = () => { if (!('Notification' in window)) { FR.toast(tt('notif_no')); return; } Notification.requestPermission().then(p => FR.toast(tt(p === 'granted' ? 'notif_ok' : 'notif_no'))); };
   A.export = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([FR.exportData()], { type: 'application/json' })); a.download = 'parlons-backup-' + FR.dayStr() + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };

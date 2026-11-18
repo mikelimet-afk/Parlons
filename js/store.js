@@ -6,7 +6,7 @@
 
   const defaults = () => ({
     v: 1,
-    settings: { lang: 'en', theme: 'simple', pacing: 'auto', spacing: 0, remind: '', motion: 'full', target: '2027-12-31', voice: 0.9, voiceStyle: 'natural', voiceGender: 'f', voiceAccent: 'fr', voiceName: '', sound: 'on', readPause: 800, kb: 'auto', kbLayout: 'azerty' },
+    settings: { lang: 'en', theme: 'simple', pacing: 'auto', spacing: 0, remind: '', motion: 'full', target: '2027-12-31', voice: 0.9, voiceStyle: 'natural', voiceGender: 'f', voiceAccent: 'fr', voiceName: '', ai: 'on', sound: 'on', readPause: 800, kb: 'auto', kbLayout: 'azerty' },
     items: {},      // spaced-repetition memory per item: {b: box, r: right, w: wrong, d: due}
     lessons: {},    // lesson id -> {done, n, best, t}
     chapters: {},   // chapter id -> {t}
@@ -62,3 +62,5 @@
   FR.t = (k, v) => FR.pick(FR.S[k] || [k, k], v);
   FR.tt = (k, v) => FR.bi(FR.S[k] || [k, k], v);
 })();
+// AI features (tutor, AI practice, Explain with AI) can be switched off in Settings.
+window.FR.aiOn = () => !(window.FR.state && window.FR.state.settings && window.FR.state.settings.ai === 'off');

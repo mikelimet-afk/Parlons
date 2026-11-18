@@ -26,10 +26,10 @@
     onAnswer: ok => { if (FR.sfx) try { FR.sfx(ok); } catch (e) {} }
   });
 
-  FR.act.ai = d => FreeLLM.open(d.tab || 'chat');
+  FR.act.ai = d => { if (FR.aiOn()) FreeLLM.open(d.tab || 'chat'); };
   // "Explain with AI" on the answer feedback of a lesson / practice question.
   FR.act.aiexplain = () => {
-    const ss = FR.state.session; if (!ss || !ss.cur) return;
+    const ss = FR.state.session; if (!FR.aiOn() || !ss || !ss.cur) return;
     const q = ss.queue[ss.i], cur = ss.cur, t = o => q.ol === 'k' ? FR.tt(o) : o;
     const d = { question: (FR.tt(q.lab) || '') + ': ' + q.term + (q.sub ? ' (' + q.sub + ')' : ''), note: q.why ? bi(q.why) : '' };
     if (q.type === 'mcq') { d.options = q.opts.map(t); d.correct = t(q.opts[q.a]); d.picked = t(q.opts[cur.pick]); }
