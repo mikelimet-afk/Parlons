@@ -7,7 +7,7 @@ greet|Bonsoir, madame.|Salut !|Good evening.|Bonsoir replaces bonjour from about
 greet|Enchanté de faire votre connaissance.|Enchanté. / Salut, moi c'est Léa.|Pleased to meet you.|
 greet|Je vous présente mon collègue.|Je te présente un pote.|Let me introduce my colleague / a mate.|
 greet|Comment vous appelez-vous ?|Tu t'appelles comment ?|What's your name?|Casual questions put the question word at the end.
-greet|Au revoir, bonne journée.|Salut ! / À plus !|Goodbye.|"À plus" is short for "à plus tard"; in texts: A+.
+greet|Au revoir, bonne journée.|Salut ! / À plus ! / À tout à l'heure !|Goodbye. / See you later.|"À plus" is short for "à plus tard"; in texts: A+. "À tout à l'heure" means later today.
 greet|À bientôt, j'espère.|À la prochaine !|See you soon.|
 greet|Bonne soirée à vous.|Bonne soirée !|Have a nice evening.|
 greet|Je vous souhaite un bon week-end.|Bon week-end !|Have a good weekend.|
@@ -18,12 +18,13 @@ resp|Je ne sais pas.|Je sais pas. / Chais pas.|I don't know.|In speech the "ne" 
 resp|Je n'ai pas compris.|J'ai pas compris.|I didn't understand.|
 resp|C'est très bien.|C'est top. / C'est génial.|That's great.|
 resp|Cela ne fait rien.|C'est pas grave.|It doesn't matter.|
-resp|Il n'y a pas de problème.|Pas de souci. / T'inquiète.|No problem.|"T'inquiète" is short for "ne t'inquiète pas".
+resp|Pas de problème.|Pas de souci. / T'inquiète.|No problem. / No worries.|You'll also see "pas de soucis"; "t'inquiète" is short for "ne t'inquiète pas".
 resp|Vous avez tout à fait raison.|T'as raison. / Carrément.|You're absolutely right.|"T'as" is the spoken form of "tu as".
 resp|Je ne suis pas d'accord.|Pas du tout ! / N'importe quoi !|I don't agree.|"N'importe quoi !" (rubbish!) can sound rude.
 resp|C'est vraiment surprenant.|Sans blague ! / C'est pas vrai !|That's really surprising.|
 resp|Je n'en ai aucune idée.|Aucune idée.|I have no idea.|
 resp|Cela m'est égal.|Bof. / Comme tu veux.|I don't mind.|"Bof" shows a lack of enthusiasm.
+resp|Ça m'est égal.|Je m'en fiche.|I don't mind. / I don't care.|"Ça m'est égal" is neutral (I don't mind); "je m'en fiche" is blunter (I don't care) and can sound rude.
 resp|Avec plaisir.|Volontiers ! / Grave !|With pleasure.|"Grave" as "totally!" is youth slang.
 ask|Qu'est-ce que vous faites ?|Tu fais quoi ?|What are you doing?|
 ask|Pourriez-vous répéter, s'il vous plaît ?|Tu peux répéter ?|Could you repeat that?|"Hein ?" and "Quoi ?" exist but sound abrupt.
@@ -62,6 +63,7 @@ plans|Il y a beaucoup de monde.|Y a plein de monde.|There are a lot of people.|"
 plans|Nous verrons bien.|On verra.|We'll see.|
 plans|Je dois partir maintenant.|Faut que j'y aille.|I have to go now.|
 shop|Je voudrais un café, s'il vous plaît.|Un café, s'il vous plaît.|A coffee, please.|"Je voudrais" is the polite way to ask.
+shop|Je voudrais un croissant, s'il vous plaît.|Je vais prendre un croissant.|I'll have a croissant.|When ordering, "je vais prendre" (I'll have) is relaxed but still polite.
 shop|L'addition, s'il vous plaît.|On peut payer ?|The bill, please.|
 shop|Je regarde seulement, merci.|Je regarde, merci.|I'm just looking, thanks.|
 shop|Est-ce que je peux payer par carte ?|Je peux payer par carte ?|Can I pay by card?|

@@ -118,10 +118,13 @@
         (cur ? '' : '<button class="btn primary" data-act="check"' + (used.length ? '' : ' aria-disabled="true"') + '>' + tt('check') + '</button>');
     }
     if (cur) {
-      body += '<div class="fb ' + (cur.ok ? 'ok' : 'bad') + '"><div class="fb-h">' + (cur.ok ? '<b lang="fr">' + esc(cur.praise) + '</b>' : '<b>' + tt('not_quite') + '</b>') + (q.say ? say(q.say) : '') + '</div>' +
+      // Example sentence: the question's own, or the dictionary's example for this word.
+      let ex = q.ex;
+      if (!ex && q.say) { const w = FR.wordBy && (FR.wordBy[q.say.toLowerCase()] || FR.wordBy[q.say.toLowerCase().replace(/^(le |la |les |l'|un |une )/, '')]); if (w && w.ex) ex = [w.ex, w.exEn || '']; }
+      body += '<div class="fb ' + (cur.ok ? 'ok' : 'bad') + '"><div class="fb-h">' + (cur.ok ? '<b lang="fr">' + esc(cur.praise) + '</b>' : '<b>' + tt('not_quite') + '</b>') + (q.say ? '<button class="mini sayw" data-act="say" data-text="' + esc(q.say) + '" aria-label="listen">🔊 ' + (ex ? bi(['word', 'mot']) : '') + '</button>' : '') + '</div>' +
         (!cur.ok && (q.type === 'build' || q.type === 'type') ? '<p>' + tt('correct_is') + ' <b lang="fr">' + esc(q.type === 'type' && q.g ? FR.withArt({ fr: q.answer, g: q.g }) : q.answer) + '</b></p>' + (cur.gender ? '<p>' + tt('type_gender') + '</p>' : '') : '') +
         (cur.accent ? '<p class="accent-note">✍️ ' + tt('type_accent') + ' <b lang="fr" class="acc-w">' + cur.html + '</b></p>' : '') +
-        (q.why ? '<p>' + bi(q.why) + '</p>' : '') + (q.ex ? '<p class="ex"><span lang="fr">' + esc(q.ex[0]) + '</span><br><span class="mute">' + esc(q.ex[1]) + '</span></p>' : '') +
+        (q.why ? '<p>' + bi(q.why) + '</p>' : '') + (ex ? '<div class="ex ex-say"><p><span lang="fr">' + esc(ex[0]) + '</span>' + (ex[1] ? '<br><span class="mute">' + esc(ex[1]) + '</span>' : '') + '</p><button class="mini sayw" data-act="say" data-text="' + esc(ex[0]) + '" aria-label="listen to the sentence">🔊 ' + bi(['sentence', 'phrase']) + '</button></div>' : '') +
         (cur.nudge ? '<p class="nudge">☕ ' + tt(cur.nudge) + '</p>' : '') +
         '<div class="row"><button class="btn primary" data-act="next">' + tt('continue') + '</button><button class="btn small" data-act="aiexplain">✨ ' + bi(['Explain with AI', 'Expliquer avec l’IA']) + '</button></div></div>';
     }
@@ -267,7 +270,8 @@
   A.rule = d => { openRule = openRule === d.id ? '' : d.id; FR.refresh(); };
 
   // ---------- everyday French ----------
-  let evTab = 'pairs', phCat = 'all';
+  let evTab = 'pairs', phCat = 'all', exCat = 'all';
+  A.excat = d => { exCat = d.c; FR.refresh(); };
   A.phcat = d => { phCat = d.c; FR.refresh(); };
   V.everyday = () => {
     const s = S(), rp = s.rp, R = rp && FR.ROLEPLAYS.find(x => x.id === rp.id);
@@ -286,11 +290,17 @@
         }).join('') + '</div>' +
         (picked ? '<div class="fb ' + (tn.opts[rp.pick][2] ? 'ok' : 'bad') + '"><p>' + esc(tn.opts[rp.pick][3]) + '</p>' + (tn.opts[rp.pick][2] ? '' : '<p class="mute">✓ ' + esc(tn.opts.find(o => o[2])[3]) + '</p>') + btn('continue', 'rpnext', '', 'primary') + '</div>' : '') + '</div>';
     }
-    let h = '<h1>' + tt('everyday') + '</h1><p class="mute">' + tt('everyday_sub') + '</p><div class="seg">' + [['pairs', 'ev_pairs'], ['rp', 'ev_rp']].map(x => '<button class="' + (evTab === x[0] ? 'on' : '') + '" data-act="evtab" data-t="' + x[0] + '">' + tt(x[1]) + '</button>').join('') + '</div>';
+    let h = '<h1>' + tt('everyday') + '</h1><p class="mute">' + tt('everyday_sub') + '</p><div class="seg">' + [['pairs', 'ev_pairs'], ['expr', 'ev_expr'], ['rp', 'ev_rp']].map(x => '<button class="' + (evTab === x[0] ? 'on' : '') + '" data-act="evtab" data-t="' + x[0] + '">' + tt(x[1]) + '</button>').join('') + '</div>';
     if (evTab === 'pairs') {
       const list = FR.PAIRS.filter(p => phCat === 'all' || p[0] === phCat);
       h += '<div class="chips scroll">' + [['all', ['All', 'Tout']]].concat(Object.entries(FR.PHRASE_CATS)).map(c => '<button class="chip' + (phCat === c[0] ? ' on' : '') + '" data-act="phcat" data-c="' + c[0] + '">' + bi(c[1]) + '</button>').join('') + '</div><p class="hint">' + tt('n_phrases', { n: list.length }) + '</p>' +
         '<div class="stagger">' + list.map(p => '<section class="card pair"><small class="mute">' + esc(p[3]) + ' · ' + bi(FR.PHRASE_CATS[p[0]]) + '</small><div class="pair-r"><span class="reg formal">' + tt('formal') + '</span><span lang="fr">' + esc(p[1]) + '</span>' + say(p[1]) + '</div><div class="pair-r"><span class="reg casual">' + tt('casual') + '</span><span lang="fr">' + esc(p[2]) + '</span>' + say(p[2].split(' / ')[0]) + '</div>' + (p[4] ? '<p class="usage">💡 ' + esc(p[4]) + '</p>' : '') + '</section>').join('') + '</div>';
+    }
+    else if (evTab === 'expr') {
+      const list = (FR.EXPRS || []).filter(p => exCat === 'all' || p[0] === exCat);
+      h += '<div class="chips scroll">' + [['all', ['All', 'Tout']]].concat(Object.entries(FR.EXPR_CATS || {})).map(c => '<button class="chip' + (exCat === c[0] ? ' on' : '') + '" data-act="excat" data-c="' + c[0] + '">' + bi(c[1]) + '</button>').join('') + '</div><p class="hint">' + tt('n_phrases', { n: list.length }) + '</p>' +
+        '<div class="stagger">' + list.map(p => '<section class="card pair"><small class="mute">' + bi(FR.EXPR_CATS[p[0]]) + '</small><div class="pair-r"><b lang="fr" class="expr-fr">' + esc(p[1]) + '</b>' + say(p[1]) + '</div><p class="expr-en">' + esc(p[2]) + '</p>' +
+          (p[3] ? '<div class="ex ex-say"><p><span lang="fr">' + esc(p[3]) + '</span><br><span class="mute">' + esc(p[4]) + '</span></p>' + say(p[3]) + '</div>' : '') + (p[5] ? '<p class="usage">💡 ' + esc(p[5]) + '</p>' : '') + '</section>').join('') + '</div>';
     }
     else h += '<div class="stagger">' + FR.ROLEPLAYS.map(r => '<section class="card"><div class="ch-h"><div><h3>' + bi(r.t) + '</h3><span class="reg ' + r.reg + '">' + tt(r.reg) + '</span></div><span class="badge">' + (r.id in s.roleplay ? s.roleplay[r.id] + '/' + r.turns.length : '🎭') + '</span></div><p class="mute">' + bi(r.who) + '</p>' + btn('play', 'rpstart', 'data-id="' + r.id + '"', 'primary') + '</section>').join('') + '</div>';
     return h;
@@ -407,7 +417,7 @@
   const rdStop = () => {
     if (!rd) return;
     const id = rd.id; clearTimeout(rd.t); rd = null;
-    if (FR.canSpeak()) speechSynthesis.cancel();
+    FR.stopSpeak();
     const c = document.getElementById('rdctl'); if (c) c.innerHTML = rdButtons(id);
     document.querySelectorAll('.passage .sent.now').forEach(el => el.classList.remove('now'));
   };
@@ -425,10 +435,10 @@
     });
   };
   A.readall = d => {
-    if (!FR.canSpeak()) { FR.toast(tt('no_voice')); return; }
+    if (!FR.canSpeak() && !FR.neuralOk()) { FR.toast(tt('no_voice')); return; }
     if (rd && rd.id === d.id) { // pause / resume
       rd.paused = !rd.paused; clearTimeout(rd.t);
-      if (rd.paused) { speechSynthesis.cancel(); rdPaint(); } else rdStep();
+      if (rd.paused) { FR.stopSpeak(); rdPaint(); } else rdStep();
       return;
     }
     rdStop(); rd = { id: d.id, i: 0, paused: false, t: 0 }; rdStep();
@@ -539,14 +549,23 @@
   const seg = (k, opts) => '<div class="seg wrap">' + opts.map(o => '<button class="' + (String(S().settings[k]) === String(o[0]) ? 'on' : '') + '" data-act="set" data-k="' + k + '" data-v="' + o[0] + '">' + (o[2] ? esc(o[1]) : tt(o[1])) + '</button>').join('') + '</div>';
   const voiceSelect = () => {
     const vs = FR.frVoices(), cur = S().settings.voiceName || '';
-    if (!vs.length) return '<p class="mute small">' + tt('no_voice') + '</p>';
+    if (!vs.length) return '<p class="mute small">' + tt(FR.neuralOk() ? 'v_nodevice' : 'no_voice') + '</p>';
     const g = v => { const x = FR.voiceGender(v); return x === 'm' ? ' · ♂' : x === 'f' ? ' · ♀' : ''; };
     return '<select class="search" data-chg="voicePick"><option value="">' + esc(t('v_auto')) + '</option>' +
       vs.map(v => '<option value="' + esc(v.name) + '"' + (v.name === cur ? ' selected' : '') + '>' + esc(v.name.replace(/^Microsoft |\s*-\s*French.*$/g, '') + ' (' + v.lang + ')' + g(v)) + '</option>').join('') + '</select>';
   };
   const voiceNote = () => {
-    const st = S().settings; if (st.voiceName || st.voiceGender !== 'm' || !FR.frVoices().length) return '';
-    const pv = FR.pickVoice(); return pv.pitch < 1 ? '<p class="hint">' + tt('v_nomale') + '</p>' : '';
+    const st = S().settings, pv = FR.pickVoice(), g = st.voiceGender === 'm' ? 'm' : 'f';
+    const nn = g === 'm' ? 'Tom' : 'Siwis', gw = t(g === 'm' ? 'v_male_w' : 'v_female_w');
+    const dn = v => v ? v.name.replace(/^Microsoft |\s*-\s*French.*$/g, '') : '—';
+    let h = '';
+    if (pv.kind === 'neural') {
+      if (pv.fallback) h = tt((st.voiceAccent || 'fr') === 'ca' ? 'v_noca' : 'v_nodev', { g: gw, n: nn });
+      else h = tt('v_nat_d', { n: nn });
+      h += ' ' + tt(FR._have && FR._have[pv.id] ?'v_nat_ok' : 'v_nat_todo');
+    } else if (st.voiceAccent === 'ca') h = tt('v_ca_d', { n: dn(pv.voice) });
+    else h = (st.voiceStyle || 'natural') === 'natural' && !FR.neuralOk() ? tt('v_noneural') : tt('v_dev_d') + ' (' + dn(pv.voice) + ')';
+    return '<p class="hint">' + h + '</p>';
   };
   FR.chg.voicePick = el => { S().settings.voiceName = el.value; FR.save(); FR.refresh(); FR.speak('Bonjour ! Comment allez-vous aujourd\'hui ?'); };
   V.settings = () => {
@@ -560,6 +579,7 @@
       '<section class="card"><h3>' + tt('kb_set') + '</h3><p class="mute small">' + tt('kb_set_d') + '</p>' + seg('kb', [['auto', 'kb_auto'], ['on', 'kb_on'], ['off', 'kb_off']]) + seg('kbLayout', [['azerty', 'AZERTY', 1], ['qwerty', 'QWERTY', 1]]) + '</section>' +
       '<section class="card"><h3>' + tt('voice_h') + '</h3><p class="mute small">' + tt('voice_d') + '</p>' +
         '<h4>' + tt('v_style') + '</h4>' + seg('voiceStyle', [['natural', 'v_nat'], ['standard', 'v_std']]) +
+        '<h4>' + tt('v_acc') + '</h4>' + seg('voiceAccent', [['fr', 'v_acc_fr'], ['ca', 'v_acc_ca']]) +
         '<h4>' + tt('v_gender') + '</h4>' + seg('voiceGender', [['f', 'v_f'], ['m', 'v_m']]) + voiceNote() +
         '<h4>' + tt('v_pick') + '</h4>' + voiceSelect() +
         '<h4>' + tt('voice') + '</h4>' + seg('voice', [[0.7, 'v_slow'], [0.9, 'v_normal'], [1, 'v_natural']]) + '<button class="btn small" data-act="say" data-text="Bonjour ! Comment allez-vous aujourd\'hui ?">🔊 ' + tt('test') + '</button></section>' +
@@ -569,7 +589,7 @@
       (FR.master.on ? '<section class="card"><h3>' + bi(['Developer options', 'Options développeur']) + '</h3><div class="col">' + classesBtn() + '</div></section>' : '') +
       '<div class="col">' + btn('tips', 'go', 'data-to="tips"') + '</div><p class="mute center small">Parlons ! · v2</p>';
   };
-  A.set = d => { S().settings[d.k] = ['spacing', 'voice', 'readPause'].includes(d.k) ? +d.v : d.v; if (d.k === 'voiceStyle' || d.k === 'voiceGender') S().settings.voiceName = ''; FR.save(); FR.applySettings(); FR.shell(); FR.refresh(); if (d.k === 'sound' && d.v === 'on') FR.sfx(true); if (d.k === 'kb' && FR.kb) FR.kb.dismissed = false; };
+  A.set = d => { S().settings[d.k] = ['spacing', 'voice', 'readPause'].includes(d.k) ? +d.v : d.v; if (d.k === 'voiceStyle' || d.k === 'voiceGender' || d.k === 'voiceAccent') S().settings.voiceName = ''; FR.save(); FR.applySettings(); FR.shell(); FR.refresh(); if (d.k === 'sound' && d.v === 'on') FR.sfx(true); if (d.k === 'kb' && FR.kb) FR.kb.dismissed = false; };
   A.lang = () => A.set({ k: 'lang', v: FR.fr() ? 'en' : 'fr' });
   A.notif = () => { if (!('Notification' in window)) { FR.toast(tt('notif_no')); return; } Notification.requestPermission().then(p => FR.toast(tt(p === 'granted' ? 'notif_ok' : 'notif_no'))); };
   A.export = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([FR.exportData()], { type: 'application/json' })); a.download = 'parlons-backup-' + FR.dayStr() + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); };

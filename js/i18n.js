@@ -59,6 +59,7 @@ FR.S = {
   // rules
   rules_sub: ['Quick answers to the questions that come up again and again.', 'Des réponses rapides aux questions qui reviennent sans cesse.'], practise_rule: ['Practise this rule', 'S\'entraîner sur cette règle'], open_rule: ['Open the rule', 'Voir la règle'],
   // everyday
+  ev_expr: ['Expressions', 'Expressions'],
   everyday_sub: ['The French in textbooks and the French people actually speak.', 'Le français des manuels et celui qu\'on parle vraiment.'], ev_pairs: ['Formal vs casual', 'Formel / familier'], ev_rp: ['Roleplay', 'Jeux de rôle'], formal: ['formal', 'formel'], casual: ['casual', 'familier'],
   rp_reply: ['Choose the reply that fits the situation', 'Choisissez la réponse adaptée à la situation'], rp_done: ['The right register matters as much as the right grammar.', 'Le bon registre compte autant que la bonne grammaire.'], again_btn: ['Play again', 'Rejouer'],
   // reading
@@ -98,12 +99,21 @@ FR.S = {
   reminder: ['Daily reminder', 'Rappel quotidien'], reminder_d: ['A quiet reminder at this time if you have not studied yet. In the browser it only works while the app is open.', 'Un rappel discret à cette heure si vous n\'avez pas encore travaillé. Dans le navigateur, seulement quand l\'app est ouverte.'], notif_on: ['Allow notifications', 'Autoriser les notifications'], notif_ok: ['Notifications allowed.', 'Notifications autorisées.'], notif_no: ['Notifications are not available.', 'Notifications indisponibles.'],
   remind_msg: ['Time for a little French?', 'Un peu de français ?'],
   voice: ['Voice speed', 'Vitesse de la voix'], v_slow: ['Slow', 'Lente'], v_normal: ['Normal', 'Normale'], v_natural: ['Fast', 'Rapide'],
-  voice_h: ['Voice', 'Voix'], voice_d: ['Voices come from your device. Natural picks the most lifelike one it has (neural, online or enhanced voices).', 'Les voix viennent de votre appareil. Naturelle choisit la plus réaliste (voix neuronales, en ligne ou améliorées).'],
-  v_style: ['Sound', 'Rendu'], v_nat: ['Natural', 'Naturelle'], v_std: ['Standard', 'Standard'],
+  voice_h: ['Voice', 'Voix'], voice_d: ['Natural is a lifelike voice built into the app. Device uses your phone or browser voices.', 'Naturelle : une voix réaliste intégrée à l’app. Appareil : les voix du téléphone ou du navigateur.'],
+  v_style: ['Sound', 'Rendu'], v_nat: ['Natural', 'Naturelle'], v_std: ['Device', 'Appareil'],
   v_gender: ['Speaker', 'Locuteur'], v_f: ['Female', 'Femme'], v_m: ['Male', 'Homme'],
   v_pick: ['Choose a voice', 'Choisir une voix'], v_auto: ['Automatic (best match)', 'Automatique (meilleur choix)'],
-  v_nomale: ['No male French voice is installed on this device, so a deeper pitch is used. You can add one in your phone\'s text-to-speech settings.', 'Aucune voix masculine française sur cet appareil : la voix est rendue plus grave. Vous pouvez en ajouter une dans les réglages de synthèse vocale du téléphone.'],
-  target: ['Target date', 'Date cible'], target_d: ['When you want to reach B1. Shown as a countdown on the home screen.', 'La date à laquelle vous visez le B1. Affichée en compte à rebours sur l\'accueil.'],
+  v_acc: ["Accent", "Accent"], v_acc_fr: ["France", "France"], v_acc_ca: ["Canada (Québec)", "Canada (Québec)"],
+  v_nat_d: ["A real neural voice that runs inside the app: {n}. Downloaded once (about 60 MB), then it works offline.", "Une vraie voix neuronale intégrée à l’app : {n}. Téléchargée une fois (environ 60 Mo), puis hors ligne."],
+  v_nat_ok: ["Downloaded on this device.", "Téléchargée sur cet appareil."], v_nat_todo: ["It downloads the first time you press 🔊.", "Elle se télécharge au premier 🔊."],
+  v_dev_d: ["Uses the voices built into your phone or browser. Quality depends on the device.", "Utilise les voix de votre téléphone ou navigateur. La qualité dépend de l’appareil."],
+  v_ca_d: ["Canadian voices come from your device: {n}.", "Les voix canadiennes viennent de votre appareil : {n}."],
+  v_noca: ["This device has no {g} Canadian French voice, so the natural France voice ({n}) is used. To add one: on Android, Settings › Text-to-speech › Google › French (Canada); on Windows, Settings › Time & language › Speech › add French (Canada) — or open the app in Microsoft Edge, which includes Antoine, Jean and Thierry.", "Pas de voix {g} en français canadien sur cet appareil : la voix naturelle de France ({n}) est utilisée. Pour en ajouter une : Android › Synthèse vocale › Google › français (Canada) ; Windows › Heure et langue › Voix › français (Canada) — ou ouvrez l’app dans Microsoft Edge (Antoine, Jean, Thierry)."],
+  v_nodev: ["This device has no {g} French voice, so the natural voice ({n}) is used instead.", "Pas de voix {g} sur cet appareil : la voix naturelle ({n}) est utilisée."],
+  v_noneural: ["This browser cannot run the natural voice, so device voices are used.", "Ce navigateur ne peut pas lancer la voix naturelle : les voix de l’appareil sont utilisées."],
+  v_male_w: ["male", "masculine"], v_female_w: ["female", "féminine"],
+  v_nodevice: ["This device has no built-in French voices; the natural voice is used.", "Aucune voix française intégrée à cet appareil : la voix naturelle est utilisée."],
+  v_dl: ["Downloading the natural voice (once, about 60 MB)…", "Téléchargement de la voix naturelle (une fois, environ 60 Mo)…"], v_dl_p: ["Natural voice: {p}%", "Voix naturelle : {p} %"], v_dl_ok: ["Natural voice ready — it now works offline.", "Voix naturelle prête — elle marche hors ligne."],  target: ['Target date', 'Date cible'], target_d: ['When you want to reach B1. Shown as a countdown on the home screen.', 'La date à laquelle vous visez le B1. Affichée en compte à rebours sur l\'accueil.'],
   data: ['Your data', 'Vos données'], data_d: ['Everything is saved on this device. Export a backup before changing phone or browser.', 'Tout est enregistré sur cet appareil. Exportez une sauvegarde avant de changer de téléphone ou de navigateur.'], export: ['Export backup', 'Exporter'], import: ['Import backup', 'Importer'], reset: ['Erase everything', 'Tout effacer'], import_ok: ['Backup restored.', 'Sauvegarde restaurée.'], import_bad: ['That file is not a valid backup.', 'Ce fichier n\'est pas une sauvegarde valide.'],
   // exams
   exam_sub: ['Formats, tips and a short timed mock for each exam.', 'Formats, conseils et un court examen blanc chronométré pour chaque test.'], x_format: ['Format at a glance', 'Le format en bref'], x_tips: ['Tips and tricks', 'Conseils et astuces'],

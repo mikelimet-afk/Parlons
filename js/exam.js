@@ -173,7 +173,7 @@
       '<button class="btn danger" data-act="xdiscard">' + tt('x_quit_yes') + '</button>' +
       '<button class="link mute" data-act="xleave">' + tt('x_leave') + '</button></div>');
   };
-  A.xdiscard = () => { clearInterval(timer); if (FR.canSpeak()) speechSynthesis.cancel(); S().exam = null; FR.save(); FR.closeSheet(); FR.toast(tt('x_quit_done')); FR.go('exam'); };
+  A.xdiscard = () => { clearInterval(timer); FR.stopSpeak(); S().exam = null; FR.save(); FR.closeSheet(); FR.toast(tt('x_quit_done')); FR.go('exam'); };
   A.xleave = () => { FR.closeSheet(); FR.go('exam'); };
   A.xpick = d => { const st = S().exam; if (!st) return; st.ans[st.i] = +d.i; FR.save(); FR.refresh(); };
   A.xnav = d => { const st = S().exam; if (!st) return; st.i = Math.max(0, Math.min(flat(X[st.id]).length - 1, st.i + +d.d)); FR.save(); FR.refresh(true); };
@@ -187,7 +187,7 @@
     ex.mock.forEach((sec, si) => sec.items.forEach(it => { if (!it.open) { n++; secs[si].n++; if (st.ans[k] === it.c) { r++; secs[si].r++; } } k++; }));
     s.examLast = { id: st.id, t: Date.now(), r, n, secs, ans: st.ans, txt: st.txt };
     s.exams.unshift({ id: st.id, t: Date.now(), r, n }); s.exam = null;
-    clearInterval(timer); if (FR.canSpeak()) speechSynthesis.cancel();
+    clearInterval(timer); FR.stopSpeak();
     FR.go('exam/result');
     E.reward(30 + r * 3, { k: 'exam', ti: [ex.name + ' mock exam', 'Examen blanc ' + ex.name], r, n });
     setTimeout(() => FR.cheer(n ? r / n : 0, 0, [ex.name + ' mock exam', 'Examen blanc ' + ex.name]), 350);
