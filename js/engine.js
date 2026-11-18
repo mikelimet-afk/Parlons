@@ -54,8 +54,8 @@
   E.stats = () => {
     const s = S(), it = s.items; let learned = 0, mastered = 0, xp = 0, r = 0, w = 0;
     Object.keys(it).forEach(k => { if (k[0] === 'w') { if (it[k].b >= 1) learned++; if (it[k].b >= 4) mastered++; } });
-    Object.values(s.days).forEach(d => { xp += d.xp; r += d.r; w += d.w; });
-    return { learned, mastered, xp, r, w, acc: r + w ? r / (r + w) : null, lessons: Object.keys(s.lessons).length, total: FR.lessons.length, chapters: Object.keys(s.chapters).length };
+    let h = 0; Object.values(s.days).forEach(d => { xp += d.xp; r += d.r; w += d.w; h += d.h || 0; });
+    return { learned, mastered, xp, r, w, h, acc: r + w ? r / (r + w) : null, lessons: Object.keys(s.lessons).length, total: FR.lessons.length, chapters: Object.keys(s.chapters).length };
   };
   E.tagAcc = t => { const x = S().tags[t]; return x && x.r + x.w ? { n: x.r + x.w, a: x.r / (x.r + x.w) } : null; };
 
@@ -136,7 +136,7 @@
   };
   const lessonKeys = l => [...E.lw(l.id).map(w => 'w:' + w.fr), ...E.lw(l.id).filter(w => w.fr.length < 18).map(w => 't:' + w.fr),...E.lw(l.id).filter(w => w.g === 'm' || w.g === 'f').map(w => 'n:' + w.fr), ...l.g.map((_, i) => 'g:' + l.id + ':' + i), ...l.s.map((_, i) => 'b:' + l.id + ':' + i)];
   const weakFirst = keys => { const it = S().items; return FR.shuffle(keys).sort((x, y) => (it[x] ? it[x].b : 0.5) - (it[y] ? it[y].b : 0.5)); };
-  const fromKeys = (keys, n) => FR.shuffle(weakFirst(keys).slice(0, n).map(k => E.fromKey(k)).filter(Boolean));
+  const fromKeys = (keys, n) => FR.shuffle(weakFirst(keys).slice(0, n).map(k => (E.reviewQ || E.fromKey)(k)).filter(Boolean));
 
   function lessonQ(l, n) {
     const ws = FR.shuffle(E.lw(l.id));
@@ -164,7 +164,7 @@
     const P = E.pace(), T = FR.S;
     let queue = [], title, id = d.id || '';
     if (kind === 'lesson') { const l = FR.lessonBy[id]; if (!l) return null; queue = lessonQ(l, P.q); title = l.t; }
-    else if (kind === 'review') { queue = FR.shuffle(E.due().slice(0, P.rev).map(k => E.fromKey(k)).filter(Boolean)); title = T.review_t; }
+    else if (kind === 'review') { queue = FR.shuffle(E.due().slice(0, P.rev).map(k => (E.reviewQ || E.fromKey)(k)).filter(Boolean)); title = T.review_t; }
     else if (kind === 'practice') {
       let ids = String(d.ids || '').split(',').filter(x => FR.lessonBy[x]);
       if (d.rel === '1') ids = E.related(ids);
@@ -185,13 +185,16 @@
       queue = FR.shuffle(weakFirst(ns.map(w => 'n:' + w.fr)).slice(0, 10).map(k => E.qGender(FR.wordBy[k.slice(2)], true))); title = T.gender_t;
     }
     if (!queue.length) return null;
-    return { kind, id, title, queue, i: 0, right: 0, wrong: 0, missed: [], last: [], t0: Date.now(), cur: null, build: [] };
+    return { kind, id, title, queue, i: 0, right: 0, wrong: 0, helped: 0, missed: [], last: [], t0: Date.now(), cur: null, build: [] };
   };
 
-  E.mark = (q, ok) => {
+  // mode: 'helped' (answer taken from Help: level stays, due tomorrow) or 'clue' (right after a clue: level stays).
+  E.mark = (q, ok, mode) => {
     const s = S(), it = s.items[q.k] || (s.items[q.k] = { b: 0, r: 0, w: 0, d: 0 }), was = it.b;
     if (ok && was < 1 && q.k[0] === 'w') { const dd = E.day(); dd.nw = (dd.nw || 0) + 1; }
-    if (ok) { it.r++; it.b = Math.min(6, it.b + 1); } else { it.w++; it.b = Math.max(0, it.b - 2); }
+    if (mode === 'helped') { it.h = (it.h || 0) + 1; it.d = new Date().setHours(0, 0, 0, 0) + DAY; const dh = E.day(); dh.h = (dh.h || 0) + 1; return; }
+    if (ok && mode === 'clue') it.r++;
+    else if (ok) { it.r++; it.b = Math.min(6, it.b + 1); } else { it.w++; it.b = Math.max(0, it.b - 2); }
     it.d = it.b ? new Date().setHours(0, 0, 0, 0) + IV[it.b] * DAY : Date.now();
     ['L:' + q.L, 'S:' + q.sk].forEach(tg => { const x = s.tags[tg] || (s.tags[tg] = { r: 0, w: 0 }); ok ? x.r++ : x.w++; });
     s.recent.push(ok ? 1 : 0); if (s.recent.length > 80) s.recent.shift();
@@ -264,7 +267,7 @@
 
   // ---------- finishing a session ----------
   E.finish = () => {
-    const s = S(), ss = s.session, now = Date.now(), tot = ss.right + ss.wrong, p = tot ? ss.right / tot : 0, ev = [];
+    const s = S(), ss = s.session, now = Date.now(), tot = ss.right + ss.wrong + (ss.helped || 0), p = tot ? ss.right / tot : 0, ev = [];
     let xp = ss.right * 5;
     const res = { kind: ss.kind, id: ss.id, title: ss.title, right: ss.right, total: tot, p, missed: ss.missed.slice(0, 12), t: now };
     if (ss.kind === 'lesson') {

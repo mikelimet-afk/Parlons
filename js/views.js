@@ -101,7 +101,8 @@
   V.session = () => {
     const ss = S().session; if (!ss) return '';
     const q = ss.queue[ss.i], cur = ss.cur, n = ss.queue.length;
-    let body = '<small class="qlab">' + tt(q.lab) + (q.retry ? ' · ' + tt('again') : '') + '</small><div class="qterm" lang="' + q.tl + '">' + esc(q.term) + (q.tl === 'fr' && q.sk !== 'grammar' ? say(q.term) : '') + '</div>' + (q.sub ? '<div class="qsub mute">' + esc(q.sub) + '</div>' : '');
+    let body = '<small class="qlab">' + tt(q.lab) + (q.retry ? ' · ' + tt(q.lab2 || 'again') : '') + '</small><div class="qterm" lang="' + q.tl + '">' + esc(q.term) + (q.tl === 'fr' && q.sk !== 'grammar' ? say(q.term) : '') + '</div>' + (q.sub ? '<div class="qsub mute">' + esc(q.sub) + '</div>' : '') +
+      (q.retry && q.whyLine && !cur ? '<p class="whyl small">👉 ' + bi(q.whyLine) + '</p>' : '');
     if (q.type === 'mcq') {
       body += '<div class="opts">' + q.opts.map((o, i) => {
         let c = 'opt'; if (cur) c += i === q.a ? ' ok' : i === cur.pick ? ' bad' : ' dim';
@@ -117,14 +118,20 @@
         '<div class="bank">' + q.tiles.map((x, i) => used.includes(i) ? '<span class="tile ghost">' + esc(x) + '</span>' : '<button class="tile" data-act="tile" data-i="' + i + '" lang="fr">' + esc(x) + '</button>').join('') + '</div>' +
         (cur ? '' : '<button class="btn primary" data-act="check"' + (used.length ? '' : ' aria-disabled="true"') + '>' + tt('check') + '</button>');
     }
+    if (!cur) {
+      body += '<div id="clue" class="clue"' + (ss.help ? '>' + FR.clueHtml(q) : ' hidden>') + '</div>' +
+        '<div class="row help-row"><button id="helpbtn" class="btn small ghost" data-act="help">🙋 ' + tt(ss.help ? 'help_show' : 'help_me') + '</button>' +
+        (q.listen ? '<button class="link mute" data-act="noaudio">🔇 ' + tt('cant_listen') + '</button>' : '') + '</div>';
+    }
     if (cur) {
       // Example sentence: the question's own, or the dictionary's example for this word.
       let ex = q.ex;
       if (!ex && q.say) { const w = FR.wordBy && (FR.wordBy[q.say.toLowerCase()] || FR.wordBy[q.say.toLowerCase().replace(/^(le |la |les |l'|un |une )/, '')]); if (w && w.ex) ex = [w.ex, w.exEn || '']; }
-      body += '<div class="fb ' + (cur.ok ? 'ok' : 'bad') + '"><div class="fb-h">' + (cur.ok ? '<b lang="fr">' + esc(cur.praise) + '</b>' : '<b>' + tt('not_quite') + '</b>') + (q.say ? '<button class="mini sayw" data-act="say" data-text="' + esc(q.say) + '" aria-label="listen">🔊 ' + (ex ? bi(['word', 'mot']) : '') + '</button>' : '') + '</div>' +
+      body += '<div class="fb ' + (cur.ok ? 'ok' : 'bad') + '"><div class="fb-h">' + (cur.ok ? '<b lang="fr">' + esc(cur.praise) + '</b>' : '<b>' + tt(cur.helped ? 'here_answer' : 'not_quite') + '</b>') + (q.say ? '<button class="mini sayw" data-act="say" data-text="' + esc(q.say) + '" aria-label="listen">🔊 ' + (ex ? bi(['word', 'mot']) : '') + '</button>' : '') + '</div>' +
         (!cur.ok && (q.type === 'build' || q.type === 'type') ? '<p>' + tt('correct_is') + ' <b lang="fr">' + esc(q.type === 'type' && q.g ? FR.withArt({ fr: q.answer, g: q.g }) : q.answer) + '</b></p>' + (cur.gender ? '<p>' + tt('type_gender') + '</p>' : '') : '') +
         (cur.accent ? '<p class="accent-note">✍️ ' + tt('type_accent') + ' <b lang="fr" class="acc-w">' + cur.html + '</b></p>' : '') +
-        (q.why ? '<p>' + bi(q.why) + '</p>' : '') + (ex ? '<div class="ex ex-say"><p><span lang="fr">' + esc(ex[0]) + '</span>' + (ex[1] ? '<br><span class="mute">' + esc(ex[1]) + '</span>' : '') + '</p><button class="mini sayw" data-act="say" data-text="' + esc(ex[0]) + '" aria-label="listen to the sentence">🔊 ' + bi(['sentence', 'phrase']) + '</button></div>' : '') +
+        (cur.why ? '<p class="whyl">👉 ' + bi(cur.why) + '</p>' : q.whyLine && !cur.ok ? '<p class="whyl">👉 ' + bi(q.whyLine) + '</p>' : '') +
+        (q.why ? '<p>' + bi(q.why) + '</p>' : '') + (cur.helped ? '<p class="mute small">' + tt('helped_note') + '</p>' : '') + (ex ? '<div class="ex ex-say"><p><span lang="fr">' + esc(ex[0]) + '</span>' + (ex[1] ? '<br><span class="mute">' + esc(ex[1]) + '</span>' : '') + '</p><button class="mini sayw" data-act="say" data-text="' + esc(ex[0]) + '" aria-label="listen to the sentence">🔊 ' + bi(['sentence', 'phrase']) + '</button></div>' : '') +
         (cur.nudge ? '<p class="nudge">☕ ' + tt(cur.nudge) + '</p>' : '') +
         '<div class="row"><button class="btn primary" data-act="next">' + tt('continue') + '</button>' + (FR.aiOn() ? '<button class="btn small" data-act="aiexplain">✨ ' + bi(['Explain with AI', 'Expliquer avec l’IA']) + '</button>' : '') + '</div></div>';
     }
@@ -136,6 +143,7 @@
     const ss = S().session; if (!ss) { FR.go('home'); return; }
     const q = ss.queue[ss.i], f = document.getElementById('typef');
     if (q && q.listen && !ss.cur && !q.played) { q.played = 1; setTimeout(() => FR.speak(q.answer), 350); }
+    FR.clueTimer();
     if (f) {
       const inp = document.getElementById('typein');
       f.addEventListener('submit', e => { e.preventDefault(); A.typecheck(); });
@@ -150,25 +158,34 @@
     if (r.accent) { const x = S().tags['S:accents'] || (S().tags['S:accents'] = { r: 0, w: 0 }); x.w++; }
     resolve(r.ok, -1, { typed, accent: r.accent, html: r.html, gender: r.gender });
   };
+  // ok: right or wrong. extra.helped: the answer was taken from "Help me". A right answer after a clue
+  // keeps the level where it is. Misses and helped answers come back after a few questions, one step stricter.
   function resolve(ok, pick, extra) {
-    const ss = S().session, q = ss.queue[ss.i];
+    const ss = S().session, q = ss.queue[ss.i], helped = !!(extra && extra.helped), mode = helped ? 'helped' : ok && ss.help ? 'clue' : '';
     if (!q.retry) {
-      E.mark(q, ok); ok ? ss.right++ : ss.wrong++; ss.last.push(ok ? 1 : 0);
-      if (!ok) { ss.missed.push(q.k); ss.queue.push(Object.assign({}, q, { retry: 1 })); }
-    } else if (!ok && q.retry < 2) ss.queue.push(Object.assign({}, q, { retry: q.retry + 1 }));
-    FR.sfx(ok);
-    ss.cur = Object.assign({ ok, pick, praise: PRAISE[Math.floor(Math.random() * PRAISE.length)], nudge: E.tick(ss) }, extra || {});
+      E.mark(q, ok, mode);
+      if (helped) { ss.helped = (ss.helped || 0) + 1; ss.last.push(0); } else { ok ? ss.right++ : ss.wrong++; ss.last.push(ok ? 1 : 0); }
+      if (!ok) ss.missed.push(q.k);
+    }
+    const why = !ok && !helped ? FR.whyLine(q, pick, extra && extra.typed) : null;
+    if (!ok && (q.retry || 0) < 2) { const r = E.stricter(Object.assign({}, q, { whyLine: why })); ss.queue.splice(Math.min(ss.i + 4, ss.queue.length), 0, r); }
+    if (!helped) FR.sfx(ok);
+    ss.cur = Object.assign({ ok, pick, why, praise: PRAISE[Math.floor(Math.random() * PRAISE.length)], nudge: E.tick(ss) }, extra || {});
     FR.save(); FR.refresh();
     if (ok) { const el = document.querySelector('.opt.ok, .line.ok, .big-in.ok'); FR.burst(el); if (!q.retry) FR.floatXp(el, '+5 XP'); }
     FR.smooth.to(document.querySelector('.fb'));
   }
+  FR.resolveHelped = () => {
+    const ss = S().session, q = ss && ss.queue[ss.i]; if (!q || ss.cur) return;
+    resolve(false, q.type === 'mcq' ? -1 : -1, { helped: true, typed: '' });
+  };
   A.ans = d => { const ss = S().session; if (!ss || ss.cur) return; resolve(+d.i === ss.queue[ss.i].a, +d.i); };
   A.tile = d => { const ss = S().session; if (!ss || ss.cur) return; ss.build.push(+d.i); FR.save(); FR.refresh(); };
   A.untile = d => { const ss = S().session; if (!ss || ss.cur) return; ss.build.splice(+d.j, 1); FR.save(); FR.refresh(); };
   A.check = () => { const ss = S().session; if (!ss || ss.cur || !ss.build.length) return; const q = ss.queue[ss.i]; resolve(ss.build.map(i => q.tiles[i]).join(' ') === q.answer, -1); };
   A.next = () => {
     const ss = S().session; if (!ss) return;
-    ss.i++; ss.cur = null; ss.build = [];
+    ss.i++; ss.cur = null; ss.build = []; ss.help = 0;
     if (ss.i >= ss.queue.length) {
       const tot = ss.right + ss.wrong, fast = tot >= 5 && (Date.now() - ss.t0) / tot < 6000, ev = E.finish();
       FR.go('result'); FR.kb.hide();
@@ -458,6 +475,7 @@
     const KN = { lesson: '📘', review: '🔁', practice: '🔀', checkpoint: '🏁', comeback: '💪', gender: '⚖️', roleplay: '🎭', read: '📖', exam: '🎓' };
     return '<h1>' + tt('progress') + '</h1><div class="stats stagger">' +
       [['🔥', s.streak.count, 'streak'], ['⭐', st.xp, 'xp_total'], ['📚', st.learned, 'words_learned'], ['🎯', st.acc == null ? '–' : Math.round(st.acc * 100) + '%', 'accuracy']].map(x => '<div class="stat card"><span>' + x[0] + '</span><b>' + x[1] + '</b><small>' + tt(x[2]) + '</small></div>').join('') + '</div>' +
+      (st.h ? '<p class="mute small center">🙋 ' + tt('helped_n', { n: st.h }) + '</p>' : '') +
       '<section class="card"><h3>' + tt('course_prog') + '</h3><div class="bar"><i style="width:' + pc(st.lessons + st.chapters, st.total + FR.COURSE.length) + '%"></i></div><div class="cefr"><span>A1</span><span>A2</span><span>B1</span></div><p class="mute small">' + tt('course_line', { l: st.lessons, t: st.total, c: st.chapters, ct: FR.COURSE.length, m: st.mastered, b: s.streak.best }) + '</p></section>' +
       '<section class="card"><h3>' + tt('last14') + '</h3><div class="chart">' + days.map(d => '<div class="cbar"><i style="height:' + Math.max(3, pc(d.xp, mx)) + '%" class="' + (d.xp ? 'on' : '') + '"></i><small>' + d.l + '</small></div>').join('') + '</div></section>' +
       '<section class="card"><h3>' + tt('focus') + '</h3>' + (adv.length ? adv.map(a => '<div class="adv"><p>' + bi(a.txt, { p: a.pct }) + '</p><button class="btn small" data-act="' + a.btn[1] + '" ' + a.btn[2] + '>' + tt(a.btn[0]) + '</button></div>').join('') : '<p class="mute">' + tt(st.r + st.w < 10 ? 'adv_early' : 'adv_none') + '</p>') + '</section>' +

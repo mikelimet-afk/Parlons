@@ -299,3 +299,13 @@ body[data-theme=harvest] .bg i { border-radius:0 72% 0 72%; filter:blur(48px); a
 #napbg { translate:0 calc(var(--par, 0px) * .5); }
 html.motion-calm .rv { opacity:1; transform:none; transition:none; }
 @media (prefers-reduced-motion:reduce) { .rv { opacity:1; transform:none; transition:none; } #readbar { display:none; } .bg, #napbg { translate:none; } }
+
+/* ---------- review help: clue, Help button, reason lines ---------- */
+.help-row { justify-content:space-between; align-items:center; margin-top:10px; }
+.btn.ghost { background:transparent; border-style:dashed; }
+.clue { margin-top:12px; padding:10px 12px; border-radius:12px; background:color-mix(in srgb,var(--acc2) 10%,var(--card)); border:1px solid color-mix(in srgb,var(--acc2) 30%,var(--line)); line-height:1.5; }
+.clue.in { animation:clueIn .35s cubic-bezier(.2,.8,.2,1) both; }
+.clue-t { color:color-mix(in srgb,var(--acc2) 75%,var(--ink)); margin-right:4px; }
+@keyframes clueIn { from { opacity:0; transform:translateY(-6px); } }
+.whyl { background:var(--soft); border-radius:10px; padding:8px 10px; margin:8px 0; }
+@media (prefers-reduced-motion:reduce) { .clue.in { animation:none; } }

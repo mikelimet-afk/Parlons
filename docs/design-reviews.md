@@ -1,6 +1,6 @@
 # Design: reviews that make you remember
 
-Status: draft for approval · Part 1 of 4 (then the TCF Canada track, dictionary gaps, TEF Canada)
+Status: approved and built · Part 1 of 4 (then the TCF Canada track, dictionary gaps, TEF Canada)
 
 ## Why
 
