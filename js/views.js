@@ -34,15 +34,20 @@
     const s = S(), day = E.day(), goal = E.pace().goal, st = s.streak, lit = st.last === FR.dayStr();
     const h = new Date().getHours(), hello = h < 12 ? 'Bonjour !' : h < 18 ? 'Bon après-midi !' : 'Bonsoir !';
     const left = FR.dayDiff(FR.dayStr(), s.settings.target);
-    const tiles = [['basics', '🔤', 'basics'], ['learn', '🧭', 'lessons'], ['practice', '🔀', 'practice_mix'], ['gender', '⚖️', 'gender_quiz'], ['rules', '📐', 'rules'], ['everyday', '💬', 'everyday'], ['read', '📖', 'reading'], ['exam', '🎓', 'exam'], ['dict', '📚', 'dictionary'], ['typing', '⌨️', 'typing'], ['coach', '✨', 'coach'], ['progress', '📈', 'progress'], ['tips', '💡', 'tips']]
+    // Six main tiles, the rest under "More". With an exam goal, the exam tile opens that exam.
+    const goalG = s.settings.goal || 'learn', examTile = goalG === 'tcfca' ? ['tcf', '🇨🇦', 'tcf_t'] : ['exam', '🎓', 'exam'];
+    const mainT = [['learn', '🧭', 'lessons'], ['practice', '🔀', 'practice_mix'], ['read', '📖', 'reading'], ['everyday', '💬', 'everyday'], ['dict', '📚', 'dictionary'], goalG === 'learn' ? ['basics', '🔤', 'basics'] : examTile];
+    const moreT = [goalG === 'learn' ? examTile : ['basics', '🔤', 'basics'], ['gender', '⚖️', 'gender_quiz'], ['rules', '📐', 'rules'], ['typing', '⌨️', 'typing'], ['coach', '✨', 'coach'], ['progress', '📈', 'progress'], ['tips', '💡', 'tips']];
+    const mkT = list => list
       .map(x => '<button class="tile-nav" data-act="go" data-to="' + x[0] + '"><span>' + x[1] + '</span>' + tt(x[2]) + '</button>').join('');
     return '<section class="card hero"><div class="hero-top"><div><h1 lang="fr">' + hello + '</h1><p class="mute">' + tt('home_sub') + '</p></div>' +
       '<button class="streak' + (lit ? ' lit' : '') + '" data-act="glance"><span class="flame">🔥</span><b>' + st.count + '</b><small>' + tt('streak') + '</small></button></div>' +
       '<div class="bar"><i style="width:' + Math.min(100, pc(day.xp, goal)) + '%"></i></div><small class="mute">' + day.xp + ' / ' + goal + ' XP · ' + tt('today_goal') + '</small></section>' +
-      gateCard() + (s.gate ? '' : FR.stepCard(E.nextStep())) +
+      gateCard() + (s.gate ? '' : FR.stepCard(E.nextStep())) + (FR.tcfCard ? FR.tcfCard() : '') +
       (FR.aiOn() ? '<section class="card"><h3>✨ ' + bi(['Free AI tutor', 'Tuteur IA gratuit']) + '</h3><p class="mute">' + bi(['Ask questions, get your French corrected, or generate new practice. No account needed.', 'Posez des questions, faites corriger votre français ou créez de nouveaux exercices. Sans compte.']) + '</p><div class="row">' +
       '<button class="btn primary" data-act="ai" data-tab="chat">💬 ' + bi(['Chat', 'Discuter']) + '</button><button class="btn" data-act="ai" data-tab="practice">🎯 ' + bi(['AI practice', 'Exercices IA']) + '</button></div></section>' : '') +
-      '<h2>' + tt('explore') + '</h2><div class="grid stagger">' + tiles + '</div>' +
+      '<h2>' + tt('explore') + '</h2><div class="grid stagger">' + mkT(mainT) + '</div>' +
+      '<details class="more-tiles"><summary>' + bi(['More', 'Plus']) + '</summary><div class="grid">' + mkT(moreT) + '</div></details>' +
       (left > 0 ? '<p class="mute center small">' + tt('target_left', { n: left, d: s.settings.target }) + '</p>' : '');
   };
 
@@ -533,7 +538,7 @@
     let body = '';
     if (coachTab === 'next') {
       const n = E.nextStep(), why = { comeback: 'why_comeback', review: 'why_review', checkpoint: 'why_cp', lesson: 'why_lesson', wait: 'why_wait', free: 'why_free' }[n.kind];
-      body = FR.stepCard(n) + '<section class="card coachmsg"><span>✨</span><p>' + tt(why) + '</p></section>' +
+      body = FR.stepCard(n) + '<section class="card coachmsg"><span>✨</span><p>' + tt(why) + '</p></section>' + (FR.tcfCard ? FR.tcfCard() : '') +
         '<section class="card"><h3>' + tt('pacing') + '</h3><p>' + tt('pace_now', { p: FR.t('p_' + P) }) + (auto ? ' ' + tt('pace_auto') : '') + '</p><p class="mute small">' + (a == null ? tt('pace_nodata') : tt('pace_acc', { p: Math.round(a * 100) })) + '</p></section>';
     } else if (coachTab === 'better') {
       const adv = E.advice(), it = S().items;
@@ -594,6 +599,7 @@
   V.settings = () => {
     const st = S().settings;
     return '<h1>' + tt('settings') + '</h1>' +
+      '<section class="card"><h3>' + tt('goal_card') + '</h3><p>' + FR.goalLabel() + (st.testDate ? ' · ' + st.testDate : '') + (st.goal && st.goal !== 'learn' ? ' · NCLC ' + (st.nclc || 7) : '') + '</p><button class="btn" data-act="goalsheet">' + bi(['Change', 'Modifier']) + '</button></section>' +
       '<section class="card"><h3>' + tt('language') + '</h3>' + seg('lang', [['en', 'English', 1], ['fr', 'Français', 1]]) + '<p class="hint">' + tt('hint_press') + '</p></section>' +
       '<section class="card"><h3>' + tt('theme') + '</h3>' + themePicker() + '<h4>' + tt('motion') + '</h4>' + seg('motion', [['full', 'mo_full'], ['calm', 'mo_calm']]) + '<h4>' + tt('sounds') + '</h4>' + seg('sound', [['on', 'snd_on'], ['off', 'snd_off']]) + '</section>' +
       '<section class="card"><h3>' + tt('pacing') + '</h3>' + seg('pacing', [['auto', 'p_auto'], ['easy', 'p_easy'], ['medium', 'p_medium'], ['hard', 'p_hard']]) + '<p class="mute small">' + tt('pd_' + st.pacing) + '</p></section>' +
