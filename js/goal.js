@@ -10,7 +10,7 @@ window.FR = window.FR || {};
     goal_tcfca: ['TCF Canada', 'TCF Canada'],
     goal_tcfca_d: ['For immigration to Canada. Full mocks and an NCLC estimate for each skill.', 'Pour immigrer au Canada. Examens blancs complets et estimation NCLC par compétence.'],
     goal_tefca: ['TEF Canada', 'TEF Canada'],
-    goal_tefca_d: ['For immigration to Canada. Tips and a short mock for now; the full version is coming.', 'Pour immigrer au Canada. Conseils et court examen blanc pour l’instant ; la version complète arrive.'],
+    goal_tefca_d: ['For immigration to Canada. A full mock and an NCLC estimate for each skill.', 'Pour immigrer au Canada. Un examen blanc complet et une estimation NCLC par compétence.'],
     goal_date: ['Test date (optional)', 'Date du test (facultatif)'],
     goal_nclc: ['Target level', 'Niveau visé'],
     goal_save: ['Save', 'Enregistrer'],
@@ -35,7 +35,7 @@ window.FR = window.FR || {};
     st.goal = pick ? pick.value : 'learn';
     const d = document.getElementById('gdate'), n = document.getElementById('gnclc');
     if (st.goal !== 'learn') { st.testDate = d && d.value ? d.value : ''; st.nclc = n ? +n.value : 7; }
-    S().goalAsked = 1; FR.save(); FR.closeSheet(); FR.refresh(true);
+    S().goalAsked = 1; S().examPick = ''; FR.save(); FR.closeSheet(); FR.refresh(true);
   };
   // Ask once, shortly after the app opens (existing users included).
   // Waits until no other sheet (such as the daily reminder) is open, trying a few times.

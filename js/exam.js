@@ -118,7 +118,7 @@
     if (p === 'run' && cur) return run(cur);
     if (p === 'result' && s.examLast) return result();
     return '<h1>' + tt('exam') + '</h1><p class="mute">' + tt('exam_sub') + '</p>' +
-      (FR.views.tcf ? '<section class="card tcf-link"><div class="ch-h"><div><small class="eyebrow">🇨🇦 France Éducation international</small><h3>TCF Canada</h3><p class="mute small">' + tt('tcf_sub') + '</p></div></div><button class="btn primary" data-act="go" data-to="tcf">' + tt('tcf_t') + ' →</button></section>' : '') +
+      (FR.views.tcf ? '<section class="card tcf-link"><div class="ch-h"><div><small class="eyebrow">🇨🇦 France Éducation international</small><h3>TCF Canada · TEF Canada</h3><p class="mute small">' + tt('tcf_sub') + '</p></div></div><button class="btn primary" data-act="go" data-to="tcf">' + tt('tcf_t') + ' →</button></section>' : '') +
       '<p class="hint">' + tt('tcf_canada_soon') + '</p>' + Object.keys(X).map(id => {
       const ex = X[id], past = s.exams.filter(e => e.id === id).slice(0, 3), n = flat(ex).length;
       return '<section class="card"><div class="ch-h"><div><small class="eyebrow">' + esc(ex.by) + '</small><h3>' + ex.name + ' <span class="mute" lang="fr">· ' + esc(ex.full) + '</span></h3></div><span class="badge">🎓</span></div>' +

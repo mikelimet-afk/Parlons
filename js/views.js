@@ -35,7 +35,7 @@
     const h = new Date().getHours(), hello = h < 12 ? 'Bonjour !' : h < 18 ? 'Bon après-midi !' : 'Bonsoir !';
     const left = FR.dayDiff(FR.dayStr(), s.settings.target);
     // Six main tiles, the rest under "More". With an exam goal, the exam tile opens that exam.
-    const goalG = s.settings.goal || 'learn', examTile = goalG === 'tcfca' ? ['tcf', '🇨🇦', 'tcf_t'] : ['exam', '🎓', 'exam'];
+    const goalG = s.settings.goal || 'learn', examTile = goalG === 'tcfca' ? ['tcf', '🇨🇦', 'tcf_t'] : goalG === 'tefca' ? ['tcf', '🇨🇦', 'goal_tefca'] : ['exam', '🎓', 'exam'];
     const mainT = [['learn', '🧭', 'lessons'], ['practice', '🔀', 'practice_mix'], ['read', '📖', 'reading'], ['everyday', '💬', 'everyday'], ['dict', '📚', 'dictionary'], goalG === 'learn' ? ['basics', '🔤', 'basics'] : examTile];
     const moreT = [goalG === 'learn' ? examTile : ['basics', '🔤', 'basics'], ['gender', '⚖️', 'gender_quiz'], ['rules', '📐', 'rules'], ['typing', '⌨️', 'typing'], ['coach', '✨', 'coach'], ['progress', '📈', 'progress'], ['tips', '💡', 'tips']];
     const mkT = list => list

@@ -38,17 +38,19 @@
       prov: 'Provider', key: 'API key', model: 'Model', url: 'Endpoint URL', getKey: 'Get a free key', save: 'Save', test: 'Test', saved: 'Saved.', ok: 'Working: ',
       keyNote: 'Your key stays in this browser and is sent only to the provider above. Leave everything on Pollinations to use AI with no key at all.',
       fail: 'The AI could not be reached. Check your internet connection, or pick another provider in AI settings.', fallback: '(used the free fallback)',
-      disclaimer: 'AI answers can be wrong. Double-check important facts.', score: 'Score', explainQ: 'Explain this question to me.' },
+      disclaimer: 'AI answers can be wrong. Double-check important facts.', score: 'Score', explainQ: 'Explain this question to me.',
+      nokey: 'The free no-key AI has stopped accepting requests from apps. A free Google Gemini key fixes it in about two minutes, and it stays in this browser only.', setup: 'Set up free AI' },
     fr: { chat: 'Discussion', practice: 'Exercices', settings: 'Réglages IA', send: 'Envoyer', ph: 'Posez une question…', thinking: 'Réflexion…', close: 'Fermer', clear: 'Nouvelle discussion',
       topic: 'Thème', topicPh: 'ex. passé composé, la nourriture…', gen: 'Créer 5 questions', more: 'Plus de questions', correct: 'Correct !', wrong: 'Pas tout à fait. Réponse : ',
       prov: 'Fournisseur', key: 'Clé API', model: 'Modèle', url: 'URL du service', getKey: 'Obtenir une clé gratuite', save: 'Enregistrer', test: 'Tester', saved: 'Enregistré.', ok: 'Ça marche : ',
       keyNote: 'Votre clé reste dans ce navigateur et n’est envoyée qu’au fournisseur choisi. Laissez Pollinations pour utiliser l’IA sans aucune clé.',
       fail: 'Impossible de joindre l’IA. Vérifiez votre connexion ou choisissez un autre fournisseur dans les réglages IA.', fallback: '(secours gratuit utilisé)',
-      disclaimer: 'L’IA peut se tromper. Vérifiez les points importants.', score: 'Score', explainQ: 'Explique-moi cette question.' }
+      disclaimer: 'L’IA peut se tromper. Vérifiez les points importants.', score: 'Score', explainQ: 'Explique-moi cette question.',
+      nokey: 'L’IA gratuite sans clé n’accepte plus les demandes des applications. Une clé Google Gemini gratuite règle le problème en deux minutes environ ; elle reste dans ce navigateur.', setup: 'Configurer l’IA gratuite' }
   };
 
   var cfg = { app: 'app', title: 'AI tutor', lang: 'en', tutor: 'You are a friendly, concise tutor.', practice: '', explain: '', starters: [], topics: [], fab: true };
-  var history = [], quiz = [], busy = false, root = null, sh = null, tab = 'chat';
+  var history = [], quiz = [], busy = false, root = null, sh = null, tab = 'chat', prefer = '';
 
   /* ---------- settings ---------- */
   function loadSettings() {
@@ -99,15 +101,32 @@
       return fetch(q).then(function (r) { if (!r.ok) throw e; return r.text(); });
     });
   }
+  // Tries the chosen provider, then every other provider that has a key saved, then the keyless one.
+  // Pollinations' keyless access is now behind a bot check, so with no key saved anywhere the error
+  // starts with "NOKEY" and the UI offers to set up a free key instead of a vague failure.
   function chat(messages, opts) {
     opts = opts || {};
-    var id = loadSettings().provider;
-    return callProvider(id, messages, opts).catch(function (err) {
-      if (id === 'pollinations') throw err;
-      if (window.console) console.warn('[FreeLLM] ' + id + ' failed, using free fallback:', err);
-      return callProvider('pollinations', messages, opts).then(function (t) { return t + '\n\n_' + T('fallback') + '_'; });
-    });
+    var s = loadSettings(), first = s.provider;
+    var order = [first].concat(Object.keys(PROVIDERS).filter(function (k) { return k !== first && k !== 'pollinations' && PROVIDERS[k].key && (s.keys[k] || '').trim(); }));
+    if (order.indexOf('pollinations') < 0) order.push('pollinations');
+    var hasKey = Object.keys(s.keys).some(function (k) { return PROVIDERS[k] && PROVIDERS[k].key && (s.keys[k] || '').trim(); });
+    var i = 0, lastErr = null;
+    function next() {
+      if (i >= order.length) {
+        var e = lastErr || new Error('No provider');
+        if (!hasKey) e = new Error('NOKEY ' + String(e.message || e).slice(0, 160));
+        return Promise.reject(e);
+      }
+      var id = order[i++];
+      return callProvider(id, messages, opts).then(function (t) { return id === first ? t : t + '\n\n_' + T('fallback') + '_'; })
+        .catch(function (err) { lastErr = err; if (window.console) console.warn('[FreeLLM] ' + id + ' failed:', err); return next(); });
+    }
+    return next();
   }
+  var noKey = function (e) { return /^NOKEY/.test(String(e && e.message || e)); };
+  var failHtml = function (msg) {
+    return noKey(msg) ? esc(T('nokey')) + '<br><button class="setup" data-fl="setup">' + esc(T('setup')) + '</button>' : esc(T('fail')) + '<br><code>' + esc(String(msg).slice(0, 160)) + '</code>';
+  };
   function ask(prompt, system) {
     return chat([{ role: 'system', content: system || cfg.tutor }, { role: 'user', content: prompt }]);
   }
@@ -216,7 +235,10 @@
     var $ = function (s) { return sh.querySelector(s); };
     $('.fab').onclick = function () { open('chat'); };
     $('.x').onclick = close;
-    $('.ov').addEventListener('click', function (e) { if (e.target === $('.ov')) close(); });
+    $('.ov').addEventListener('click', function (e) {
+      if (e.target === $('.ov')) { close(); return; }
+      var b = e.target.closest && e.target.closest('[data-fl=setup]'); if (b) { prefer = 'gemini'; open('settings'); }
+    });
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && $('.ov').classList.contains('open')) close(); });
   }
   function $(s) { return sh.querySelector(s); }
@@ -251,7 +273,7 @@
     var f = fresh ? ' in' : ''; fresh = false;
     bd.innerHTML = (history.length ? '' : '<div class="m' + f + '">' + md(cfg.greeting ? (typeof cfg.greeting === 'function' ? cfg.greeting() : cfg.greeting) : '👋') + '</div>' +
       (starters.length ? '<div class="st' + f + '">' + starters.map(function (s) { return '<button>' + esc(s) + '</button>'; }).join('') + '</div>' : '')) +
-      history.map(function (m) { return '<div class="m' + (m.role === 'user' ? ' u' : '') + isNew(m) + '">' + (m.role === 'user' ? esc(m.shown || m.content).replace(/\n/g, '<br>') : md(m.content)) + '</div>'; }).join('') +
+      history.map(function (m) { return '<div class="m' + (m.role === 'user' ? ' u' : '') + isNew(m) + '">' + (m.role === 'user' ? esc(m.shown || m.content).replace(/\n/g, '<br>') : m.err ? '⚠️ ' + failHtml(m.err) : md(m.content)) + '</div>'; }).join('') +
       (busy ? dots() : '') + '<p class="mut">' + esc(T('disclaimer')) + '</p>';
     Array.prototype.forEach.call(bd.querySelectorAll('.st button'), function (b) { b.onclick = function () { send(b.textContent); }; });
     ft.innerHTML = '<textarea placeholder="' + esc(T('ph')) + '" rows="1"></textarea><button class="go' + (busy ? ' busy' : '') + '"' + (busy ? ' disabled' : '') + '>' + esc(T('send')) + '</button>' +
@@ -270,9 +292,9 @@
     history.push({ role: 'user', content: text, shown: shown });
     busy = true; if (tab === 'chat') renderChat();
     var sys = (typeof cfg.tutor === 'function' ? cfg.tutor() : cfg.tutor) + (lang() === 'fr' ? '\nThe learner reads the app in French.' : '');
-    var msgs = [{ role: 'system', content: sys }].concat(history.slice(-12).map(function (m) { return { role: m.role, content: m.content }; }));
+    var msgs = [{ role: 'system', content: sys }].concat(history.filter(function (m) { return !m.err; }).slice(-12).map(function (m) { return { role: m.role, content: m.content }; }));
     chat(msgs).then(function (t) { history.push({ role: 'assistant', content: t.trim() }); })
-      .catch(function (e) { history.push({ role: 'assistant', content: '⚠️ ' + T('fail') + '\n\n`' + String(e.message || e).slice(0, 160) + '`' }); })
+      .catch(function (e) { history.push({ role: 'assistant', err: String(e.message || e), content: '⚠️ ' + T('fail') }); })
       .then(function () { busy = false; if (sh && tab === 'chat' && $('.ov').classList.contains('open')) renderChat(); });
   }
   function explain(d) {
@@ -297,7 +319,7 @@
     var f = fresh ? ' in' : ''; fresh = false;
     bd.innerHTML = (quiz.length ? '' : (topics.length ? '<div class="st' + f + '">' + topics.map(function (s) { return '<button>' + esc(s) + '</button>'; }).join('') + '</div>' : '')) +
       quiz.map(function (q, qi) {
-        if (q.err) return '<div class="m err' + isNew(q) + '">⚠️ ' + esc(T('fail')) + '<br><code>' + esc(q.err) + '</code></div>';
+        if (q.err) return '<div class="m err' + isNew(q) + '">⚠️ ' + failHtml(q.err) + '</div>';
         var done = q.pick != null, hit = q._hit; q._hit = 0;
         var a = isNew(q) || f;
         return '<div class="q' + a + '"><h4>' + (qi + 1) + '. ' + md(q.q).replace(/^<p>|<\/p>$/g, '') + '</h4>' + q.options.map(function (o, i) {
@@ -350,13 +372,13 @@
         '<label>' + T('model') + '</label><input class="md" value="' + esc(s.models[id] || p.model) + '">' +
         (id === 'custom' ? '<label>' + T('url') + '</label><input class="u" value="' + esc(s.urls[id] || p.url) + '">' : '');
     };
-    bd.innerHTML = '<div><label>' + T('prov') + '</label><select>' + Object.keys(PROVIDERS).map(function (k) { return '<option value="' + k + '"' + (k === s.provider ? ' selected' : '') + '>' + esc(PROVIDERS[k].name) + '</option>'; }).join('') + '</select>' +
+    bd.innerHTML = '<div><label>' + T('prov') + '</label><select>' + Object.keys(PROVIDERS).map(function (k) { return '<option value="' + k + '"' + (k === (prefer || s.provider) ? ' selected' : '') + '>' + esc(PROVIDERS[k].name) + '</option>'; }).join('') + '</select>' +
       '<div class="box"></div><p class="mut">' + esc(T('keyNote')) + '</p><p class="res mut"></p></div>';
     var sel = bd.querySelector('select'), box = bd.querySelector('.box'), res = bd.querySelector('.res');
     sel.onchange = draw; draw();
     var store = function () {
       var id = sel.value, k = box.querySelector('.k'), m = box.querySelector('.md'), u = box.querySelector('.u');
-      s.provider = id;
+      s.provider = id; prefer = '';
       if (k) s.keys[id] = k.value.trim();
       if (m) { if (m.value.trim() && m.value.trim() !== PROVIDERS[id].model) s.models[id] = m.value.trim(); else delete s.models[id]; }
       if (u) s.urls[id] = u.value.trim();
@@ -379,5 +401,7 @@
   }
   function showFab(on) { build(); $('.fab').classList.toggle('hide', !on); }
 
-  window.FreeLLM = { init: init, open: open, close: close, explain: explain, chat: chat, ask: ask, json: json, showFab: showFab, providers: PROVIDERS, settings: loadSettings };
+  // Opens AI settings with Google Gemini picked, for adding a free key.
+  function setup() { prefer = 'gemini'; open('settings'); }
+  window.FreeLLM = { init: init, open: open, setup: setup, close: close, explain: explain, chat: chat, ask: ask, json: json, showFab: showFab, providers: PROVIDERS, settings: loadSettings };
 })();
