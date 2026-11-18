@@ -106,7 +106,11 @@
   V.session = () => {
     const ss = S().session; if (!ss) return '';
     const q = ss.queue[ss.i], cur = ss.cur, n = ss.queue.length;
-    let body = '<small class="qlab">' + tt(q.lab) + (q.retry ? ' · ' + tt(q.lab2 || 'again') : '') + '</small><div class="qterm" lang="' + q.tl + '">' + esc(q.term) + (q.tl === 'fr' && q.sk !== 'grammar' ? say(q.term) : '') + '</div>' + (q.sub ? '<div class="qsub mute">' + esc(q.sub) + '</div>' : '') +
+    let body = '<small class="qlab">' + tt(q.lab) + (q.retry ? ' · ' + tt(q.lab2 || 'again') : '') + '</small><div class="qterm" lang="' + q.tl + '">' + esc(q.term) + (q.tl === 'fr' && q.sk !== 'grammar' ? say(q.term) : '') + '</div>' + (q.sub ? '<div class="qsub mute">' + esc(q.sub) + '</div>' : '');
+    // Vocabulary questions in lessons and reviews show the word's drawing to the right, as a clue (not in the gender quiz or listening).
+    const pic = FR.pic && /^[wt]:/.test(q.k || '') && ss.kind !== 'gender' && !q.listen ? FR.pic(q.k.slice(2)) : '';
+    if (pic) body = '<div class="qrow"><div class="qtxt">' + body + '</div>' + pic + '</div>';
+    body +=
       (q.retry && q.whyLine && !cur ? '<p class="whyl small">👉 ' + bi(q.whyLine) + '</p>' : '');
     if (q.type === 'mcq') {
       body += '<div class="opts">' + q.opts.map((o, i) => {
