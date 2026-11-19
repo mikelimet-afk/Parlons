@@ -63,6 +63,8 @@
   const GP = [[/(tion|sion)$/, 'f', '-tion / -sion'], [/té$/, 'f', '-té'], [/ette$/, 'f', '-ette'], [/(ance|ence)$/, 'f', '-ance / -ence'], [/ure$/, 'f', '-ure'], [/ie$/, 'f', '-ie'], [/ée$/, 'f', '-ée'],
     [/age$/, 'm', '-age'], [/ment$/, 'm', '-ment'], [/eau$/, 'm', '-eau'], [/isme$/, 'm', '-isme'], [/oir$/, 'm', '-oir']];
   const GN = { m: ['masculine', 'masculin'], f: ['feminine', 'féminin'] };
+  // The ending rule that applies to a noun, if any: { end: '-tion', rule: 'f' }.
+  E.genderEnding = w => { const p = GP.find(x => x[0].test(w.fr)); return p ? { end: p[2], rule: p[1] } : null; };
   E.genderHint = w => {
     const art = FR.withArt(w) + ', ' + FR.withArt(w, true);
     if (w.g === 'mf') return ['This noun takes either article, depending on the person: ' + art + '.', 'Ce nom prend les deux articles, selon la personne : ' + art + '.'];

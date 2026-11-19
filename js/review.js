@@ -1,11 +1,11 @@
 window.FR = window.FR || {};
 // Reviews that make you remember (docs/design-reviews.md).
 // - The better you know a word, the harder its question: buttons, then typing, then typing inside a sentence.
-// - A clue appears after 5 seconds; "Help me" gives the clue, then the answer.
+// - A clue appears after 10 seconds; "Help me" gives the clue, then the answer.
 // - Every mistake gets a one-line reason and comes back later in the session in a stricter form.
 (function () {
   const E = FR.engine, S = () => FR.state;
-  const CLUE_MS = 5000, RETEST_GAP = 4; // the retest comes back after at least 3 other questions
+  const CLUE_MS = 10000, RETEST_GAP = 4; // the retest comes back after at least 3 other questions
 
   Object.assign(FR.S, {
     q_cloze: ['Type the missing word', 'Écrivez le mot qui manque'],
@@ -13,6 +13,7 @@ window.FR = window.FR || {};
     help_me: ['Help me', 'Aidez-moi'],
     help_show: ['Show me the answer', 'Montrez-moi la réponse'],
     clue: ['Clue', 'Indice'],
+    clue_starts: ['Starts with {a}', 'Commence par {a}'],
     clue_letters: ['Starts with {a} · {n} letters', 'Commence par {a} · {n} lettres'],
     here_answer: ['Here’s the answer', 'Voici la réponse'],
     helped_note: ['That’s fine. You’ll see it again in a few questions, and again tomorrow.', 'Pas de souci. Il revient dans quelques questions, puis demain.'],
@@ -85,23 +86,60 @@ window.FR = window.FR || {};
 
   // ---------- clues ----------
   const wordOf = q => { const [t, a] = q.k.split(':'); return (t === 'w' || t === 't' || t === 'n') ? FR.wordBy[a] : null; };
+  // Every clue has the same shape: one line of context (a sentence, a rule or the topic),
+  // then, for typed answers, the first letter and length. A clue never contains the answer itself.
+  const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Blank out every whole-word appearance of the answer (and its parts, for answers like "ne … pas").
+  const hide = (s, ans) => {
+    if (!s || !ans) return s;
+    String(ans).split(/\s*…\s*|\s*\.\.\.\s*/).filter(p => p.trim()).sort((a, b) => b.length - a.length).forEach(p => {
+      s = s.replace(new RegExp('(^|[^A-Za-zÀ-ÿœŒ])' + reEsc(p.trim().replace(/['’]$/, '')) + '(?=$|[^A-Za-zÀ-ÿœŒ])', 'gi'), '$1___');
+    });
+    return s;
+  };
+  const frLine = s => '<span lang="fr">' + FR.esc(s) + '</span>';
+  const enLine = s => '<span class="mute">' + FR.esc(s) + '</span>';
+  const topicLine = w => { const t = w && !/^x:inapp/.test(w.topic || '') && FR.TOPICS && FR.TOPICS[w.topic]; return t ? FR.bi(['Topic: ', 'Thème : ']) + '<b>' + FR.esc(FR.pick(t)) + '</b>' : ''; };
+  const shapeLine = ans => { const letters = ans.replace(/[^A-Za-zÀ-ÿœŒ]/g, ''); return FR.tt('clue_letters', { a: letters.charAt(0).toUpperCase(), n: letters.length }); };
+  // The rule from a grammar reason, with the answer taken out ("Pain is masculine: ___.").
+  const ruleLine = (why, ans) => { const r = FR.pick(why); const h = hide(r, ans); return /[A-Za-zÀ-ÿ]{3}/.test(h.replace(/___/g, '')) ? FR.esc(h) : ''; };
+  const genderLine = w => {
+    if (w.g === 'mf') return FR.bi(['It names a person. Think about who it is.', 'Ce mot désigne une personne. Pensez à qui c’est.']);
+    const p = E.genderEnding && E.genderEnding(w);
+    if (!p) return FR.bi(['Its ending doesn’t help here. Try saying it with “le” and with “la”: which one have you heard?', 'Sa terminaison n’aide pas ici. Dites-le avec « le » puis avec « la » : lequel avez-vous déjà entendu ?']);
+    if (p.rule === w.g) return FR.bi(['Look at the ending, ' + p.end + '. Most nouns with it share one gender.', 'Regardez la terminaison, ' + p.end + '. La plupart des noms qui l’ont ont le même genre.']);
+    return FR.bi(['Careful: this one breaks the usual rule for nouns ending in ' + p.end + '.', 'Attention : celui-ci ne suit pas la règle habituelle des noms en ' + p.end + '.']);
+  };
   FR.clueHtml = q => {
-    const w = wordOf(q), parts = [];
+    const w = wordOf(q), lines = [];
     if (q.type === 'type') {
-      const ans = q.answer, letters = ans.replace(/[^A-Za-zÀ-ÿœŒ]/g, '');
-      parts.push(FR.tt('clue_letters', { a: ans[0].toUpperCase(), n: letters.length }));
-      if (q.cloze) parts.push(FR.bi(['Means: ', 'Veut dire : ']) + '<b>' + FR.esc(q.hint || '') + '</b>');
-      else if (w && w.ex && !q.listen) { const f = formIn(w); if (f) parts.push('<span lang="fr">' + FR.esc(blankOut(w.ex, f)) + '</span>'); }
-      if (q.gram && q.why) parts.push(FR.bi(q.why));
+      if (q.cloze) lines.push(FR.bi(['Means: ', 'Veut dire : ']) + '<b>' + FR.esc(hide(q.hint || '', q.answer)) + '</b>');
+      else if (q.gram) { const r = q.why && ruleLine(q.why, q.answer); if (r) lines.push(r); }
+      else if (q.listen && w) lines.push(FR.bi(['Means: ', 'Veut dire : ']) + '<b>' + FR.esc(hide(w.en, q.answer)) + '</b>');
+      else if (w && w.ex) { const f = formIn(w); if (f) lines.push(frLine(hide(blankOut(w.ex, f), q.answer)) + (w.exEn ? '<br>' + enLine(hide(w.exEn, q.answer)) : '')); }
+      if (!lines.length && w) lines.push(topicLine(w));
+      lines.push(shapeLine(q.answer));
     } else if (q.type === 'mcq') {
-      if (q.sk === 'gender' && q.why) parts.push(FR.bi(q.why).replace(/:.*$/, '.'));
-      else if (q.sk === 'grammar' && q.why) parts.push(FR.bi(q.why));
-      else if (w && w.ex) { const f = formIn(w); parts.push('<span lang="fr">' + FR.esc(f ? blankOut(w.ex, f) : w.ex) + '</span>' + (w.exEn ? '<br><span class="mute">' + FR.esc(w.exEn) + '</span>' : '')); }
+      const ans = q.opts && q.opts[q.a];
+      if (q.sk === 'gender' && w) lines.push(genderLine(w));
+      else if (q.sk === 'grammar') { const r = q.why && ruleLine(q.why, ans); if (r) lines.push(r); }
+      else if (w && q.ol === 'en') {
+        // French word shown, English to pick: see the word used in a French sentence (no translation, that would give it away).
+        if (w.ex) lines.push(frLine(w.ex));
+        else if (ans) lines.push(FR.tt('clue_starts', { a: String(ans).charAt(0).toUpperCase() }));
+      } else if (w) {
+        // English shown, French to pick: the French sentence with the word blanked, and its English.
+        const f = w.ex && formIn(w);
+        if (f) lines.push(frLine(hide(blankOut(w.ex, f), ans)) + (w.exEn ? '<br>' + enLine(hide(w.exEn, ans)) : ''));
+        else if (ans) lines.push(FR.tt('clue_starts', { a: String(ans).replace(/^[^A-Za-zÀ-ÿœŒ]+/, '').charAt(0).toUpperCase() }));
+      }
+      if (!lines.length && w) lines.push(topicLine(w));
     } else if (q.type === 'build') {
-      parts.push(FR.bi(['It starts with: ', 'Ça commence par : ']) + '<b lang="fr">' + FR.esc(q.answer.split(' ')[0]) + '</b>');
+      lines.push(FR.bi(['It starts with: ', 'Ça commence par : ']) + '<b lang="fr">' + FR.esc(q.answer.split(' ')[0]) + '</b>');
     }
-    if (!parts.length) parts.push(FR.bi(['Think of the sentence it usually goes in, then try.', 'Pensez à une phrase où on l’utilise, puis essayez.']));
-    return '<b class="clue-t">💡 ' + FR.tt('clue') + '</b> ' + parts.join('<br>');
+    let html = lines.filter(Boolean).join('<br>');
+    if (!html) html = FR.bi(['Read the question again slowly, word by word. Which option fits every part of it?', 'Relisez la question lentement, mot par mot. Quelle réponse va avec chaque partie ?']);
+    return '<b class="clue-t">💡 ' + FR.tt('clue') + '</b> ' + html;
   };
 
   // ---------- reason lines after a mistake ----------

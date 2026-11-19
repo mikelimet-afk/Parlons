@@ -53,7 +53,7 @@ When a review builds a question for a word, the form depends on how well that wo
 
 ### 2. Help ladder
 
-- If no answer is given for **5 seconds**, a clue appears without being asked for:
+- If no answer is given for **10 seconds**, a clue appears without being asked for:
   - For a typed word: the first letter, the number of letters, and the example sentence with the word blanked.
   - For buttons: the example sentence with the word blanked.
 - A **Help me** button is always visible.
@@ -97,7 +97,7 @@ Review length stays tied to the pace setting (8 / 12 / 20 items before retests).
 
 ## Builder's calls (marked as mine; open to change)
 
-- Clue delay of 5 seconds (changed from 8 at the user's request); the clue-only answer gives one level less than normal.
+- Clue delay of 10 seconds (8, then 5, then 10 at the user's request). Every clue gives context (a sentence, a rule with the answer blanked, or the topic) and never the answer itself; the clue-only answer gives one level less than normal.
 - Retest gap of 3 questions; at most 2 retests per item.
 - Thresholds of 2 (typing) and 4 (sentence).
 - Gender and tile questions keep their forms.
