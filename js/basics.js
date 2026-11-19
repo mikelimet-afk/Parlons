@@ -117,6 +117,18 @@
   }
 
   // ---------- view ----------
+  // Days, months, parts of the day, before/after words and phrases for plans (data in FR.BASICS.when).
+  function whenCards() {
+    const W = B.when; if (!W) return '';
+    const chips = list => '<div class="chips">' + list.map(x => '<button class="chip" data-act="say" data-text="' + esc(x[0]) + '"><span lang="fr">' + esc(x[0]) + '</span> · <span class="mute">' + esc(x[1]) + '</span></button>').join('') + '</div>';
+    const rows = list => '<div class="wl">' + list.map(x => '<div class="wl-r"><b lang="fr">' + esc(x[0]) + '</b>' + say(x[0]) + '<span>' + esc(x[1]) + '</span></div>').join('') + '</div>';
+    return '<section class="card"><h3>' + bi(['Days of the week', 'Les jours de la semaine']) + '</h3>' + chips(W.days) + '</section>' +
+      '<section class="card"><h3>' + bi(['Months', 'Les mois']) + '</h3>' + chips(W.months) + '</section>' +
+      '<section class="card"><h3>' + bi(['Times of the day', 'Les moments de la journée']) + '</h3>' + rows(W.parts) + '</section>' +
+      '<section class="card"><h3>' + bi(['Today, tomorrow, next week …', 'Aujourd\'hui, demain, la semaine prochaine …']) + '</h3>' + rows(W.rel) + '</section>' +
+      '<section class="card"><h3>' + bi(['Useful phrases for making plans', 'Phrases utiles pour s\'organiser']) + '</h3><div class="wl">' + W.phrases.map(x => '<div class="wl-r col-r"><div><b lang="fr">' + esc(x[0]) + '</b>' + say(x[0]) + '</div><span class="mute">' + esc(x[1]) + '</span></div>').join('') + '</div></section>' +
+      '<section class="card"><h3>' + bi(['Good to know', 'Bon à savoir']) + '</h3><ul class="tips">' + W.tips.map(x => '<li>' + bi(x) + '</li>').join('') + '</ul></section>';
+  }
   let tab = 'abc';
   V.basics = p => {
     if (p && TABS.some(x => x[0] === p)) tab = p;
@@ -136,7 +148,7 @@
     } else if (tab === 'time') {
       h += '<section class="card center">' + clockSvg() + '<div id="tout">' + timeText() + '</div>' +
         '<form id="tform" class="row center-row"><input id="tin" class="search" placeholder="' + esc(FR.t('b_time_ph')) + '" autocomplete="off" aria-label="time"><button class="btn primary">' + tt('b_time_set') + '</button></form><p class="hint">' + tt('b_time_hint') + '</p></section>' +
-        '<section class="card"><h3>' + tt('b_time_rules') + '</h3><ul class="tips"><li>' + tt('b_tr1') + '</li><li>' + tt('b_tr2') + '</li><li>' + tt('b_tr3') + '</li><li>' + tt('b_tr4') + '</li></ul></section>';
+        '<section class="card"><h3>' + tt('b_time_rules') + '</h3><ul class="tips"><li>' + tt('b_tr1') + '</li><li>' + tt('b_tr2') + '</li><li>' + tt('b_tr3') + '</li><li>' + tt('b_tr4') + '</li></ul></section>' + whenCards();
     } else if (tab === 'words') {
       h += B.words.map(g => '<section class="card"><h3>' + tt(g[0]) + '</h3><div class="wl">' + g[1].map(w => '<div class="wl-r"><b lang="fr">' + esc(w[0]) + '</b>' + say(w[0].replace(/…/g, '')) + '<span>' + esc(w[1]) + '</span></div>').join('') + '</div></section>').join('');
     } else {

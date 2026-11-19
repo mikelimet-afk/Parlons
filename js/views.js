@@ -280,11 +280,35 @@
   A.dfilter = (d, el) => { dq.f = d.f; document.querySelectorAll('#dchips .chip').forEach(c => c.classList.toggle('on', c === el)); document.getElementById('dlist').innerHTML = dictList(); };
   A.say = d => { if (FR.stopReading) FR.stopReading(); FR.speak(d.text); };
 
+  // ---------- verb tables (top of the rules page) ----------
+  // Type a verb in English or French, or a form like "je prononce", and see it with je … ils/elles in five tenses.
+  let verbQ = '', verbSel = '';
+  const COMMON_VERBS = ['être', 'avoir', 'aller', 'faire', 'parler', 'manger', 'finir', 'prendre', 'venir', 'pouvoir', 'vouloir', 'se lever'];
+  const verbOut = () => {
+    if (!verbQ) return '<p class="hint">' + bi(['Try one of these, or type your own:', 'Essayez un de ces verbes, ou tapez le vôtre :']) + '</p>';
+    const found = FR.verbFind(verbQ);
+    if (!found.length) return '<p class="hint">' + bi(['No verb found for "' + esc(verbQ) + '". Try the infinitive (prononcer) or the English (pronounce).', 'Aucun verbe trouvé pour « ' + esc(verbQ) + ' ». Essayez l\'infinitif (prononcer).']) + '</p>';
+    if (!found.includes(verbSel)) verbSel = found[0];
+    const c = FR.conj(verbSel), w = FR.wordBy[verbSel];
+    const split = r => { const m = r.match(/^(j'|je |tu |il\/elle |il |nous |vous |ils\/elles )(.*)$/); return m ? [m[1].trim(), m[2]] : ['', r]; };
+    return (found.length > 1 ? '<div class="chips">' + found.map(v => '<button class="chip' + (v === verbSel ? ' on' : '') + '" data-act="vpick" data-v="' + esc(v) + '"><span lang="fr">' + esc(v) + '</span>' + (FR.wordBy[v] ? ' · <span class="mute">' + esc(FR.wordBy[v].en) + '</span>' : '') + '</button>').join('') + '</div>' : '') +
+      '<div class="vhead"><b lang="fr">' + esc(c.inf) + '</b>' + say(c.inf) + (w ? '<span class="mute">' + esc(w.en) + '</span>' : '') + '</div>' +
+      '<p class="small mute">' + bi(['Past participle: ', 'Participe passé : ']) + '<b lang="fr">' + esc(c.pp) + '</b> · ' + bi(['passé composé with ', 'passé composé avec ']) + '<b lang="fr">' + c.aux + '</b>' + (c.aux === 'être' ? bi([' — add -e for a woman, -s for several', ' — -e au féminin, -s au pluriel']) : '') + '</p>' +
+      (!w ? '<p class="hint">' + bi(['This verb isn\'t in the dictionary, so the regular pattern is shown.', 'Ce verbe n\'est pas dans le dictionnaire : le modèle régulier est affiché.']) + '</p>' : '') +
+      '<div class="vgrid">' + c.tenses.map(t => '<div class="vt"><h4>' + bi(t.t) + '</h4><p class="small mute">' + bi(t.use) + '</p><table class="vtab">' +
+        t.rows.filter(Boolean).map(r => { const [sj, f] = split(r); return '<tr><td class="mute">' + esc(sj) + '</td><td lang="fr"><b>' + esc(f) + '</b></td><td>' + say(r.replace('il/elle', 'il').replace('ils/elles', 'ils')) + '</td></tr>'; }).join('') + '</table></div>').join('') + '</div>';
+  };
+  const verbCard = () => '<section class="card" id="rule-verbs"><h3>' + bi(['Verb tables', 'Tableaux de conjugaison']) + '</h3><p class="mute small">' + bi(['Type a verb in English or French — pronounce, prononcer or even je prononce — to see every form.', 'Tapez un verbe en anglais ou en français — pronounce, prononcer, je prononce — pour voir toutes ses formes.']) + '</p>' +
+    '<form id="vform" class="row"><input id="vin" class="search" value="' + esc(verbQ) + '" placeholder="' + esc(FR.fr() ? 'prononcer, manger, aller…' : 'pronounce, eat, prononcer…') + '" autocomplete="off" autocapitalize="off" aria-label="verb"><button class="btn primary">' + bi(['Show', 'Voir']) + '</button></form>' +
+    '<div class="chips">' + COMMON_VERBS.map(v => '<button class="chip" data-act="vtry" data-v="' + esc(v) + '" lang="fr">' + esc(v) + '</button>').join('') + '</div><div id="vout">' + verbOut() + '</div></section>';
+  A.vtry = d => { verbQ = d.v; verbSel = d.v; const i = document.getElementById('vin'); if (i) i.value = d.v; document.getElementById('vout').innerHTML = verbOut(); };
+  A.vpick = d => { verbSel = d.v; document.getElementById('vout').innerHTML = verbOut(); };
+
   // ---------- rules ----------
   let openRule = '';
   V.rules = (p, fresh) => {
     if (fresh && p) openRule = p;
-    return '<h1>' + tt('rules') + '</h1><p class="mute">' + tt('rules_sub') + '</p><div class="stagger">' + FR.RULES.map(r => {
+    return '<h1>' + tt('rules') + '</h1><p class="mute">' + tt('rules_sub') + '</p>' + verbCard() + '<div class="stagger">' + FR.RULES.map(r => {
       const o = openRule === r.id;
       return '<section class="card rule' + (o ? ' open' : '') + '" id="rule-' + r.id + '"><button class="rule-h" data-act="rule" data-id="' + r.id + '"><h3>' + bi(r.t) + '</h3><span>' + (o ? '−' : '+') + '</span></button>' +
         (o ? '<div class="rule-b"><p>' + bi(r.sum) + '</p>' + r.pts.map(p => '<div class="pt"><b lang="fr">' + esc(p[0]) + '</b><span>' + bi(p[1]) + '</span></div>').join('') +
@@ -292,7 +316,11 @@
           (FR.lessonBy[r.lesson] && E.chUnlocked(FR.lessonBy[r.lesson].ci) ? btn('practise_rule', 'start', 'data-kind="practice" data-ids="' + r.lesson + '"', 'primary') : '') + '</div>' : '') + '</section>';
     }).join('') + '</div>';
   };
-  AF.rules = (p, fresh) => { if (fresh && p) { const el = document.getElementById('rule-' + p); if (el) el.scrollIntoView({ block: 'start' }); } };
+  AF.rules = (p, fresh) => {
+    if (fresh && p) { const el = document.getElementById('rule-' + p); if (el) el.scrollIntoView({ block: 'start' }); }
+    const f = document.getElementById('vform');
+    if (f) f.addEventListener('submit', e => { e.preventDefault(); verbQ = document.getElementById('vin').value.trim(); verbSel = ''; document.getElementById('vout').innerHTML = verbOut(); document.getElementById('vin').blur(); });
+  };
   A.rule = d => { openRule = openRule === d.id ? '' : d.id; FR.refresh(); };
 
   // ---------- everyday French ----------

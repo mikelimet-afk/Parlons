@@ -37,13 +37,16 @@
       parts.legs = P('M37 65 L63 65 L62 92 L53 92 L50 73 L47 92 L38 92Z', bot[0]) + P('M50 65 L63 65 L62 92 L53 92 L50 73Z', bot[1]) + E(42.5, 93.5, 5.5, 2.4, o.shoe || '#3a2a22') + E(57.5, 93.5, 5.5, 2.4, o.shoe || '#3a2a22');
       parts.body = P('M37 38 L63 38 L64 66 L36 66Z', top[0]) + P('M50 38 L63 38 L64 66 L50 66Z', top[1]);
     }
-    parts.arms = S('M40 41 L34 64', top[0], 7) + C(33.5, 67, 3.4, SKIN[0]) + S('M60 41 L66 64', top[1], 7) + C(66.5, 67, 3.4, SKIN[1]);
+    // Arms: o.armL / o.armR are [elbow x, elbow y, hand x, hand y] for a pose; default hangs down.
+    const arm = (sx, a, c, sk) => a ? S('M' + sx + ' 41 L' + a[0] + ' ' + a[1] + ' L' + a[2] + ' ' + a[3], c, 7) + C(a[2], a[3], 3.4, sk) : '';
+    parts.arms = (o.armL ? arm(40, o.armL, top[0], SKIN[0]) : S('M40 41 L34 64', top[0], 7) + C(33.5, 67, 3.4, SKIN[0])) + (o.armR ? arm(60, o.armR, top[1], SKIN[1]) : S('M60 41 L66 64', top[1], 7) + C(66.5, 67, 3.4, SKIN[1]));
     parts.head = R(46, 31, 8, 8, SKIN[1]) + C(38, 23, 2.8, SKIN[0]) + C(62, 23, 2.8, SKIN[1]) + C(50, 22, 12, SKIN[0]) + P('M53 10.4 A12 12 0 0 1 53 33.6 A8 12 0 0 0 53 10.4Z', SKIN[1]);
-    parts.face = C(45.5, 23, 1.6, INK) + C(54.5, 23, 1.6, INK) + S('M46.5 28 Q50 31 53.5 28', '#9a4a3c', 1.3) + E(42.5, 27, 2.2, 1.3, '#ff9a8a').replace('/>', ' opacity=".45"/>') + E(57.5, 27, 2.2, 1.3, '#ff9a8a').replace('/>', ' opacity=".45"/>') +
+    parts.face = (o.eyes || C(45.5, 23, 1.6, INK) + C(54.5, 23, 1.6, INK)) + (o.mouth || S('M46.5 28 Q50 31 53.5 28', '#9a4a3c', 1.3)) + E(42.5, 27, 2.2, 1.3, '#ff9a8a').replace('/>', ' opacity=".45"/>') + E(57.5, 27, 2.2, 1.3, '#ff9a8a').replace('/>', ' opacity=".45"/>') +
       (o.old ? RING(45.5, 23, 3.6, '#6b5b52', 1) + RING(54.5, 23, 3.6, '#6b5b52', 1) + S('M49.1 23 L50.9 23', '#6b5b52', 1) : '') + (o.glasses ? RING(45.5, 23, 3.6, '#2b2f36', 1.2) + RING(54.5, 23, 3.6, '#2b2f36', 1.2) + S('M49.1 23 L50.9 23', '#2b2f36', 1.2) : '');
     parts.hair = o.bald ? '' : o.f
       ? (o.old ? C(50, 9, 6, hair[0]) + P('M38 23 C37 6 63 6 62 23 C59 16 55 14.5 50 14.5 C45 14.5 41 16 38 23Z', hair[0]) : P('M37 24 C36 4 64 4 63 24 C60 17 56 15 50 15 C44 15 40 17 37 24Z', hair[0]) + S('M43 9 Q50 6.5 57 8.5', '#ffffff', 1.2).replace('/>', ' opacity=".25"/>'))
       : P('M38 20 C37 5 63 5 62 20 C59 15.5 55 14 50 14 C45 14 41 15.5 38 20Z', hair[0]) + (o.beard ? P('M39 26 Q40 37 50 38 Q60 37 61 26 Q58 33 50 33 Q42 33 39 26Z', hair[0]) : '');
+    if (o.legs) parts.legs = o.legs;
     parts.add = o.add || '';
     const order = ['back', 'legs', 'body', 'arms', 'head', 'face', 'hair', 'add'];
     const fz = o.focus;
@@ -405,6 +408,62 @@
     P('M40 52 L62 52 L46 80 L36 80Z', '#3a85cf') + P('M44 48 L60 48 L48 24 L40 24Z', '#5aa2e6') + P('M14 44 L22 44 L16 26 L8 26Z', '#3a85cf') + P('M82 46 L90 46 Q93 48 92 50 L82 50Z', '#2b2f36') + [30, 38, 46, 54, 62, 70].map(x => C(x, 48, 2, '#5aa2e6')).join('') + R(10, 52, 84, 2.4, '#3a85cf');
   D.bateau = () => R(4, 82, 92, 14, '#4f9ee6') + S('M8 90 Q14 86 20 90 M66 92 Q72 88 78 92', '#a6d4f6', 1.6) + P('M10 70 L90 70 L80 86 L20 86Z', '#c0723a') + P('M50 70 L90 70 L80 86 L50 86Z', '#a85f2e') + R(10, 68, 80, 4, '#8a4b2a') + R(48.5, 12, 3, 58, '#6b4430') +
     LINE(P('M51 14 L80 62 L51 62Z', '#ffffff')) + P('M48 22 L24 62 L48 62Z', '#e8433a') + R(51, 10, 10, 6, '#3a85cf');
+
+  // ---------- more people: relatives and friends ----------
+  const UNCLE = o => man(Object.assign({ x: -22, s: 0.9, beard: 1, top: ['#4caf7a', '#3a9462'], bot: ['#6b5b4a', '#574a3b'] }, o));
+  const AUNT = o => woman(Object.assign({ x: 2, s: 0.86, top: ['#36b3b0', '#279997'], hair: HAIR.blond }, o));
+  const CUZ_B = o => boy(Object.assign({ x: 28, s: 0.56, top: ['#e8433a', '#c22e27'] }, o));
+  const CUZ_G = o => girl(Object.assign({ x: 28, s: 0.54, top: ['#f6b041', '#e0962a'], hair: HAIR.dark }, o));
+  D.oncle = () => fam([UNCLE, AUNT, CUZ_B], [0]);
+  D.tante = () => fam([UNCLE, AUNT, CUZ_G], [1]);
+  D.cousin = () => fam([UNCLE, AUNT, CUZ_B], [2]);
+  D.cousine = () => fam([UNCLE, AUNT, CUZ_G], [2]);
+  D.neveu = () => shadow(50, 94, 32) + UNCLE({ x: -14, op: 0.2 }) + boy({ x: 18, s: 0.62, top: ['#e8433a', '#c22e27'] });
+  D['nièce'] = () => shadow(50, 94, 32) + AUNT({ x: -14, op: 0.2 }) + girl({ x: 18, s: 0.6, top: ['#f6b041', '#e0962a'], hair: HAIR.dark });
+  // Friends give each other a high five.
+  D.ami = () => shadow(50, 94, 36) + man({ x: -16, s: 0.88, armR: [68, 30, 64, 16] }) + man({ x: 16, s: 0.88, top: ['#f28a2e', '#d96f1a'], hair: HAIR.brown, armL: [32, 30, 36, 16] });
+  D.amie = () => shadow(50, 94, 36) + woman({ x: -16, s: 0.86, armR: [68, 30, 64, 16] }) + woman({ x: 16, s: 0.84, top: ['#9b6bd6', '#8052bd'], hair: HAIR.blond, armL: [32, 30, 36, 16] });
+  D.copain = D.ami; D.copine = D.amie;
+
+  // ---------- describing people ----------
+  D.grand = () => shadow(50, 94, 34) + man({ x: -14, s: 0.96 }) + man({ x: 18, s: 0.66, top: ['#f28a2e', '#d96f1a'], op: 0.2 });
+  D.petit = () => shadow(50, 94, 34) + man({ x: -14, s: 0.96, op: 0.2 }) + man({ x: 18, s: 0.66, top: ['#f28a2e', '#d96f1a'] });
+  D.jeune = () => shadow(50, 94, 34) + oldWoman({ x: -15, s: 0.9, op: 0.2 }) + woman({ x: 15, s: 0.9 });
+  D.vieux = () => shadow(50, 94, 34) + oldMan({ x: -15, s: 0.9 }) + man({ x: 15, s: 0.9, op: 0.2 });
+  const faceBust = o => G('translate(-60,1.6) scale(2.2)', fig(Object.assign({ f: 1 }, o)));
+  const tear = E(44, 27.5, 1, 1.7, '#5bb8f0');
+  D.heureux = () => faceBust({ eyes: S('M43.5 23.5 Q45.5 21 47.5 23.5 M52.5 23.5 Q54.5 21 56.5 23.5', INK, 1.2), mouth: P('M45.5 27 Q50 33 54.5 27Z', '#9a4a3c') + P('M47 27.6 L53 27.6 L52.6 28.6 L47.4 28.6Z', '#ffffff') });
+  D.content = D.heureux;
+  D.triste = () => faceBust({ mouth: S('M46.5 30 Q50 27 53.5 30', '#9a4a3c', 1.3), add: tear + S('M43 20.6 L47.5 19 M57 20.6 L52.5 19', INK, 1) });
+  D['fatigué'] = () => faceBust({ eyes: S('M43.5 23.5 L47.5 23.5 M52.5 23.5 L56.5 23.5', INK, 1.2), mouth: E(50, 29.2, 1.4, 1.8, '#9a4a3c'), add: S('M63 8 L67 8 L63 12 L67 12', '#5b6470', 0.9) + S('M68 2.5 L70.5 2.5 L68 5 L70.5 5', '#5b6470', 0.7) });
+  D.malade = () => faceBust({ eyes: S('M43.5 23 Q45.5 24.5 47.5 23 M52.5 23 Q54.5 24.5 56.5 23', INK, 1.1), mouth: '', add: E(43, 27, 2.4, 1.4, '#9fd36a') + E(57, 27, 2.4, 1.4, '#9fd36a') + R(49, 28, 12, 1.8, '#e1e7ee', 0.9) + C(61, 28.9, 1.3, '#e8433a') });
+
+  // ---------- everyday verbs ----------
+  const note = (x, y, c) => E(x, y, 3, 2.2, c, -20) + R(x + 2, y - 11, 1.6, 11, c) + P('M' + (x + 3.6) + ' ' + (y - 11) + ' Q' + (x + 9) + ' ' + (y - 8) + ' ' + (x + 7) + ' ' + (y - 3) + ' Q' + (x + 7) + ' ' + (y - 7) + ' ' + (x + 3.6) + ' ' + (y - 8) + 'Z', c);
+  const zz = (x, y) => S('M' + x + ' ' + y + ' L' + (x + 6) + ' ' + y + ' L' + x + ' ' + (y + 6) + ' L' + (x + 6) + ' ' + (y + 6), '#5b6470', 1.8) + S('M' + (x + 9) + ' ' + (y - 8) + ' L' + (x + 13) + ' ' + (y - 8) + ' L' + (x + 9) + ' ' + (y - 4) + ' L' + (x + 13) + ' ' + (y - 4), '#5b6470', 1.4);
+  D.manger = () => one(woman, { armR: [68, 54, 56, 31], mouth: E(50, 29, 1.8, 1.4, '#9a4a3c'), add: C(56, 30, 4.6, '#e8433a') + P('M59 27 Q61 30 59 33 Q57 30 59 27Z', '#fff6e8') + S('M56 25.4 L57 22', '#7a4e2d', 1.2) });
+  D.boire = () => one(man, { armR: [68, 54, 57, 32], add: G('rotate(-30 56 30)', P('M52 22 L61 22 L60 36 L53 36Z', '#d6ecfa') + P('M52.6 28 L60.4 28 L60 36 L53 36Z', '#7cc6f2')) });
+  D.dormir = () => shadow(50, 88, 42) + R(10, 34, 8, 52, '#9a6a3e', 2) + R(82, 52, 8, 34, '#9a6a3e', 2) + LINE(R(16, 54, 68, 12, '#ffffff')) + LINE(E(29, 50, 12, 6, '#ffffff')) +
+    G('translate(0,3)', C(30, 44, 9, SKIN[0]) + P('M21 44 Q22 33 32 34 Q39 35 39 42 Q34 38 28 39 Q23 40 21 44Z', HAIR.brown[0]) + S('M27 46 L31 46', INK, 1.2)) + R(36, 50, 50, 20, '#4a90e2', 3) + R(36, 62, 50, 8, '#3778c4') + R(14, 66, 74, 8, '#b9824f', 2) + zz(46, 22) + zz(60, 10);
+  D.lire = () => one(woman, { armL: [36, 58, 42, 55], armR: [64, 58, 58, 55], eyes: S('M44 24 L47 24 M53 24 L56 24', INK, 1.3), add: LINE(P('M36 46 L50 50 L64 46 L64 60 L50 64 L36 60Z', '#ffffff')) + S('M50 50 L50 64', '#c3ccd6', 1) + S('M40 51 L47 53 M40 55 L47 57 M53 53 L60 51 M53 57 L60 55', '#aeb8c4', 0.9) + P('M36 60 L50 64 L64 60 L64 62 L50 66 L36 62Z', '#3a85cf') });
+  D['écrire'] = () => shadow(50, 88, 40) + LINE(G('rotate(-6 50 56)', R(18, 30, 56, 54, '#ffffff', 2))) + S('M26 42 Q30 38 34 42 T42 42 T50 42 T58 42 M26 52 Q30 48 34 52 T42 52 T50 52 M26 62 Q30 58 34 62 T42 62', '#4a6fa5', 1.6) +
+    G('rotate(35 62 54)', R(58, 22, 8, 40, '#f7c948', 2) + P('M58 62 L66 62 L62 72Z', '#f0d2a8') + P('M60.6 68 L63.4 68 L62 72Z', '#2b2f36')) + E(76, 50, 10, 8, SKIN[0], 35) + E(70, 44, 5, 3.4, SKIN[0], 40) + E(82, 58, 8, 6, SKIN[1], 35);
+  D.courir = () => shadow(50, 94, 22) + one(man, { armL: [32, 50, 38, 42], armR: [68, 50, 74, 60], top: ['#e8433a', '#c22e27'], bot: ['#2b2f36', '#1f2228'],
+    legs: S('M46 66 L36 76 L26 78', '#2b2f36', 8) + S('M54 66 L60 79 L68 88', '#1f2228', 8) + E(24, 79, 5, 2.6, '#f3f5f8') + E(70, 90, 5, 2.6, '#f3f5f8') }) + S('M6 40 L18 40 M4 50 L16 50 M8 60 L20 60', '#c3ccd6', 2);
+  D.nager = () => R(2, 52, 96, 46, '#4f9ee6', 0) + S('M2 54 Q10 50 18 54 T34 54 T50 54 T66 54 T82 54 T98 54', '#a6d4f6', 2.4) + S('M8 74 Q14 70 20 74 M60 82 Q66 78 72 82', '#a6d4f6', 1.6) +
+    C(46, 50, 10, SKIN[0]) + P('M36 48 Q36 38 46 38 Q56 38 56 48Z', '#e8433a') + C(42.5, 50, 1.4, INK) + C(49.5, 50, 1.4, INK) + S('M58 54 Q64 24 80 34', SKIN[0], 6) + C(80, 34, 3.6, SKIN[0]) + C(86, 48, 2, '#ffffff') + C(90, 52, 1.4, '#ffffff') + C(30, 56, 1.6, '#ffffff');
+  D.chanter = () => one(woman, { armR: [68, 52, 57, 32], mouth: E(50, 29, 1.8, 2.2, '#9a4a3c'), add: R(55, 31, 3, 9, '#5b6470', 1.2) + C(56.5, 30, 3, '#2b2f36') + note(70, 18, '#8e5bc4') + note(80, 30, '#3a85cf') });
+  D.danser = () => one(woman, { armL: [30, 32, 26, 18], armR: [70, 32, 74, 18], top: ['#e8433a', '#c22e27'], add: note(14, 50, '#8e5bc4') + note(84, 50, '#3a85cf') }) ;
+  D.cuisiner = () => one(man, { top: ['#f3f5f8', '#d9e0e8'], bot: ['#3a3f47', '#2b2f36'], armR: [70, 54, 78, 50], add: chefHat + E(86, 50, 9, 3, '#2b2f36') + E(86, 49, 8, 2, '#4a4f57') + R(76, 49, 4, 2, '#2b2f36') + S('M82 44 Q80 38 84 34 M89 44 Q87 38 91 34', '#c9d1da', 1.6) });
+  D.marcher = () => shadow(50, 94, 22) + one(man, { armL: [36, 52, 38, 64], armR: [64, 52, 66, 62], top: ['#4caf7a', '#3a9462'],
+    legs: S('M46 66 L42 80 L38 92', '#4a5f8c', 8) + S('M54 66 L58 80 L62 92', '#36476d', 8) + E(35, 93, 5.5, 2.4, '#3a2a22') + E(65, 93, 5.5, 2.4, '#3a2a22') });
+  const bubble = (x, y, w, c) => LINE(R(x, y, w, 16, c || '#ffffff', 8) + P('M' + (x + 6) + ' ' + (y + 14) + ' L' + (x + 4) + ' ' + (y + 22) + ' L' + (x + 13) + ' ' + (y + 15) + 'Z', c || '#ffffff')) + C(x + w / 2 - 6, y + 8, 1.6, '#8a96a5') + C(x + w / 2, y + 8, 1.6, '#8a96a5') + C(x + w / 2 + 6, y + 8, 1.6, '#8a96a5');
+  D.parler = () => shadow(50, 94, 36) + man({ x: -16, s: 0.78 }) + woman({ x: 18, s: 0.76 }) + bubble(4, 4, 30) + bubble(60, 10, 30).replace(/M(\d+\.?\d*) (\d+\.?\d*) L(\d+\.?\d*) (\d+\.?\d*) L(\d+\.?\d*) (\d+\.?\d*)Z/g, (m, a, b, c, d, e, f) => 'M' + (120 - +a) + ' ' + b + ' L' + (120 - +c) + ' ' + d + ' L' + (120 - +e) + ' ' + f + 'Z');
+  D.travailler = () => one(woman, { top: ['#5aa2e6', '#3d84cc'] }) + R(10, 62, 80, 6, '#b9824f', 2) + R(14, 68, 5, 26, '#9a6a3e') + R(81, 68, 5, 26, '#9a6a3e') + R(34, 40, 32, 22, '#2b2f36', 2) + R(37, 43, 26, 16, '#5bb8f0') + C(50, 51, 2, '#ffffff');
+  D.jouer = () => shadow(50, 94, 26) + boy({ x: -8, s: 0.78, armL: [32, 50, 30, 38] }) + LINE(C(72, 84, 9, '#ffffff')) + P('M72 80 L76 83 L74.6 87.6 L69.4 87.6 L68 83Z', '#2b2f36');
+  D.regarder = () => R(14, 14, 72, 46, '#2b2f36', 5) + R(19, 19, 62, 36, '#5bb8f0') + P('M19 19 L81 19 L19 50Z', '#7cc6f2') + P('M45 30 L58 37 L45 44Z', '#ffffff') + R(46, 60, 8, 6, '#4a4f57') + R(36, 66, 28, 3, '#4a4f57', 1.5) +
+    R(18, 84, 64, 16, '#e07a5f', 6) + C(50, 76, 10, HAIR.dark[0]) + P('M36 100 Q36 84 50 84 Q64 84 64 100Z', '#5aa2e6');
+  D['écouter'] = () => one(woman, { eyes: S('M43.5 23.5 Q45.5 21 47.5 23.5 M52.5 23.5 Q54.5 21 56.5 23.5', INK, 1.2), add: headset.replace(/#2b2f36/g, '#e8433a') + note(72, 22, '#8e5bc4') + note(18, 30, '#3a85cf') });
 
   // The picture for a French dictionary word, or '' when it has none. Drawn once, then kept.
   const cache = {};
