@@ -248,23 +248,32 @@
   };
 
   // ---------- dictionary ----------
-  const dq = { q: '', f: 'all', open: '', th: '' };
+  // at: the letter the list starts from (A–Z strip); lim: how many words are shown (Show more adds a page).
+  const dq = { q: '', f: 'all', open: '', th: '', at: '', lim: 120 };
+  const PAGE = 120, AZ = 'abcdefghijklmnopqrstuvwxyz'.split('');
+  const first = w => FR.norm(w.fr).replace(/^[^a-z]+/, '').charAt(0);
   const POS = { prep: ['preposition', 'préposition'], noun: ['noun', 'nom'], verb: ['verb', 'verbe'], adj: ['adjective', 'adjectif'], adv: ['adverb', 'adverbe'], phrase: ['phrase', 'expression'], interj: ['interjection', 'interjection'], num: ['number', 'nombre'], pron: ['pronoun', 'pronom'], conj: ['conjunction', 'conjonction'] };
   function dictList() {
     const q = FR.norm(dq.q.trim());
     const all = FR.words.filter(w => (!dq.th || FR.inTopic(w, dq.th)) && (dq.f === 'all' || (dq.f === 'bonus' ? w.topic === 'bonus' : dq.f === 'other' ? !['noun', 'verb', 'adj'].includes(w.pos) && w.topic !== 'bonus' : w.pos === dq.f)) && (!q || FR.norm(w.fr).includes(q) || (!E.locked(w) && FR.norm(w.en).includes(q))))
       .sort((a, b) => FR.norm(a.fr).localeCompare(FR.norm(b.fr)));
     if (!all.length) return '<p class="mute center">' + tt('no_results') + '</p>';
-    const MAX = 120, ws = all.slice(0, MAX);
-    return (dq.th ? '<div class="col"><button class="btn primary" data-act="start" data-kind="vocab" data-topic="' + esc(dq.th) + '">' + tt('quiz_theme') + '</button></div>' : '') +
-      '<p class="hint">' + (all.length > MAX ? tt('showing', { n: MAX, t: all.length }) : tt('n_words', { n: all.length })) + '</p>' + ws.map(w => {
+    // The A–Z strip shows when there's more than one page and no search; letters with no words are greyed out.
+    const have = new Set(all.map(first)), strip = !q && all.length > PAGE;
+    let start = 0;
+    if (strip && dq.at) { start = all.findIndex(w => first(w) >= dq.at); if (start < 0) start = 0; }
+    const ws = all.slice(start, start + dq.lim), end = start + ws.length;
+    const az = strip ? '<nav class="az" aria-label="' + esc(t('az_jump')) + '">' + AZ.map(l => '<button class="az-l' + (dq.at === l || (!dq.at && l === 'a') ? ' on' : '') + '" data-act="daz" data-l="' + l + '"' + (have.has(l) ? '' : ' disabled') + '>' + l.toUpperCase() + '</button>').join('') + '</nav>' : '';
+    const more = end < all.length ? '<div class="col"><button class="btn" data-act="dmore">' + tt('show_more', { n: Math.min(PAGE, all.length - end) }) + '</button></div>' : '';
+    return (dq.th ? '<div class="col"><button class="btn primary" data-act="start" data-kind="vocab" data-topic="' + esc(dq.th) + '">' + tt('quiz_theme') + '</button></div>' : '') + az +
+      '<p class="hint">' + (ws.length < all.length ? tt('showing_r', { a: start + 1, b: end, t: all.length }) : tt('n_words', { n: all.length })) + '</p>' + ws.map(w => {
       const lock = E.locked(w), open = dq.open === w.fr && !lock, it = S().items['w:' + w.fr];
       let h = '<div class="entry' + (open ? ' open' : '') + (lock ? ' lockd' : '') + '" data-act="dopen" data-w="' + esc(w.fr) + '"><div class="entry-h"><b lang="fr">' + esc(w.fr) + '</b>' + (w.g ? '<span class="g g-' + w.g + '">' + (w.g === 'mf' ? 'm/f' : w.g) + '</span>' : '') + '<span class="en">' + (lock ? '🔒 ' + tt('streak_reward') : esc(w.en)) + '</span></div>';
       if (open) h += '<div class="entry-b"><p class="mute small">' + bi(POS[w.pos] || [w.pos, w.pos]) + (w.g ? ' · <span lang="fr">' + esc(FR.withArt(w) + ', ' + FR.withArt(w, true)) + '</span>' : '') + '</p><p class="pronl">' + say(w.fr) + ' <i>' + esc(w.pron || '≈ ' + FR.approx(w.fr)) + '</i></p>' +
         (w.ex ? '<p class="ex"><span lang="fr">' + esc(w.ex) + '</span> ' + say(w.ex) + '<br><span class="mute">' + esc(w.exEn) + '</span></p>' : '') + (w.note ? '<p class="usage">💡 ' + esc(w.note) + '</p>' : '') +
         '<p class="mute small">' + tt('memory') + ' <span class="dots">' + [1, 2, 3, 4, 5, 6].map(i => '<i class="' + (it && it.b >= i ? 'on' : '') + '"></i>').join('') + '</span>' + (FR.lessonBy[w.topic] ? ' · <button class="link" data-act="go" data-to="lesson/' + w.topic + '">' + bi(FR.lessonBy[w.topic].t) + '</button>' : FR.TOPICS[w.topic] ? ' · ' + bi(FR.TOPICS[w.topic]) : '') + '</p></div>';
       return h + '</div>';
-    }).join('');
+    }).join('') + more;
   }
   V.dict = (p, fresh) => {
     if (fresh && p) { dq.q = p; dq.open = p; dq.f = 'all'; }
@@ -274,10 +283,13 @@
       '<select class="search" data-chg="dtheme"><option value="">' + esc(t('all_themes')) + '</option>' + Object.keys(FR.TOPICS).map(k => '<option value="' + esc(k) + '"' + (dq.th === k ? ' selected' : '') + '>' + esc(FR.pick(FR.TOPICS[k])) + '</option>').join('') + '</select>' +
       '<p class="hint">' + tt('dict_count', { n: FR.words.filter(w => !E.locked(w)).length, b: FR.words.filter(E.locked).length }) + '</p><div id="dlist" class="entries">' + dictList() + '</div>';
   };
-  FR.chg.dtheme = el => { dq.th = el.value; document.getElementById('dlist').innerHTML = dictList(); };
-  AF.dict = () => { const i = document.getElementById('dq'); if (i) i.addEventListener('input', () => { dq.q = i.value; document.getElementById('dlist').innerHTML = dictList(); }); };
+  FR.chg.dtheme = el => { dq.th = el.value; dq.at = ''; dq.lim = PAGE; document.getElementById('dlist').innerHTML = dictList(); };
+  AF.dict = () => { const i = document.getElementById('dq'); if (i) i.addEventListener('input', () => { dq.q = i.value; dq.lim = PAGE; document.getElementById('dlist').innerHTML = dictList(); }); };
   A.dopen = (d, el, e) => { if (e.target.closest('button')) return; dq.open = dq.open === d.w ? '' : d.w; document.getElementById('dlist').innerHTML = dictList(); };
-  A.dfilter = (d, el) => { dq.f = d.f; document.querySelectorAll('#dchips .chip').forEach(c => c.classList.toggle('on', c === el)); document.getElementById('dlist').innerHTML = dictList(); };
+  // Jump to a letter, or show the next page of words.
+  A.daz = d => { dq.at = d.l === 'a' ? '' : d.l; dq.lim = PAGE; dq.open = ''; document.getElementById('dlist').innerHTML = dictList(); const l = document.getElementById('dlist'); if (l && FR.smooth) FR.smooth.to(l); };
+  A.dmore = () => { dq.lim += PAGE; document.getElementById('dlist').innerHTML = dictList(); };
+  A.dfilter = (d, el) => { dq.f = d.f; dq.at = ''; dq.lim = PAGE; document.querySelectorAll('#dchips .chip').forEach(c => c.classList.toggle('on', c === el)); document.getElementById('dlist').innerHTML = dictList(); };
   A.say = d => { if (FR.stopReading) FR.stopReading(); FR.speak(d.text); };
 
   // ---------- verb tables (top of the rules page) ----------

@@ -333,3 +333,9 @@ html.motion-calm .rv { opacity:1; transform:none; transition:none; }
 .more-tiles { margin-top:12px; } .more-tiles summary { cursor:pointer; color:var(--mute); font-weight:600; padding:6px 0; }
 .more-tiles .grid { margin-top:8px; }
 .tcf-card .row, .tcf-link .btn { margin-top:6px; }
+
+/* Dictionary A–Z strip */
+.az { display:flex; flex-wrap:wrap; gap:4px; margin:8px 0 4px; }
+.az-l { min-width:30px; height:32px; padding:0 4px; border-radius:8px; border:1px solid var(--line); background:transparent; color:inherit; font:inherit; font-weight:600; font-size:13px; cursor:pointer; }
+.az-l.on { background:var(--acc); border-color:var(--acc); color:var(--acc-ink, #fff); }
+.az-l:disabled { opacity:.3; cursor:default; }
