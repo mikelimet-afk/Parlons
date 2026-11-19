@@ -82,7 +82,8 @@
       btn('only_this', 'start', 'data-kind="practice" data-ids="' + l.id + '"') + btn('mix_related', 'start', 'data-kind="practice" data-ids="' + l.id + '" data-rel="1"');
     return back('learn', 'lessons') + '<small class="eyebrow">' + tt('chapter') + ' ' + (l.ci + 1) + ' · ' + bi(l.ch.t) + '</small><h1>' + bi(l.t) + '</h1>' + (L ? '<p>' + stars(L.best) + ' <span class="mute">' + tt('best') + ' ' + Math.round(L.best * 100) + '%</span></p>' : '') +
       '<section class="card"><h3>' + tt('key_points') + '</h3><ul class="tips">' + l.tips.map(x => '<li>' + bi(x) + '</li>').join('') + '</ul>' +
-      (rule ? '<button class="link" data-act="go" data-to="rules/' + rule.id + '">📐 ' + bi(rule.t) + ' →</button>' : '') + '</section>' +
+      (rule ? '<button class="link" data-act="go" data-to="rules/' + rule.id + '">📐 ' + bi(rule.t) + ' →</button>' : '') +
+      (l.cr && FR.CR && FR.CR.some(c => c.id === l.cr) ? '<br><button class="link" data-act="go" data-to="read/cr:' + l.cr + '">📖 ' + tt('compr_lesson', { t: esc(FR.CR.find(c => c.id === l.cr).t[0]) }) + (S().cr && S().cr[l.cr] ? ' ✓' : '') + '</button>' : '') + '</section>' +
       '<section class="card"><h3>' + tt('words') + '</h3><div class="wl stagger">' + ws.map(w => '<div class="wl-r"><b lang="fr">' + esc(w.g ? FR.withArt(w) : w.fr) + '</b>' + say(w.fr) + '<span>' + esc(w.en) + '</span></div>').join('') + '</div><p class="hint">' + tt('hint_press') + '</p></section>' +
       '<div class="col">' + cta + '</div>';
   };
@@ -404,6 +405,7 @@
   });
   FR.findText = id => {
     const p = FR.PASSAGES.find(x => x.id === id); if (p) return p;
+    if (String(id).startsWith('cr:')) { const c = (FR.CR || []).find(x => 'cr:' + x.id === id); return c && c.s ? { id, s: c.s, t: c.t, br: c.br } : null; }
     const [sid, n] = String(id || '').split('~'), st = FR.STORIES.find(x => x.id === sid);
     if (!st) return null;
     const k = Math.max(1, Math.min(st.pages.length, +n || 1)), pg = st.pages[k - 1];
@@ -412,16 +414,21 @@
   const sentHtml = P => P.s.map((x, i) => '<p class="sent' + (paraStart(P, i) ? ' brk' : '') + (rd && rd.id === P.id && rd.i === i ? ' now' : '') + '"><span lang="fr">' + esc(x[0]) + '</span>' + say(x[0]) + '<span class="tr">' + esc(x[1]) + '</span></p>').join('');
   const rdControls = P => '<div class="row"><label class="switch"><input type="checkbox" data-chg="showen"' + (showEn ? ' checked' : '') + '><span>' + tt('show_en') + '</span></label><span id="rdctl" class="row tight">' + rdButtons(P.id) + '</span></div>' +
     '<small class="mute">' + tt('rd_gap') + '</small>' + seg('readPause', [[300, 'gap_s'], [800, 'gap_m'], [1600, 'gap_l']]);
+  FR.sentHtml = P => sentHtml(P); FR.rdControls = P => rdControls(P); FR.readEn = () => showEn;
+  const readTabs = cur => '<div class="seg">' + [['p', 'passages_tab'], ['s', 'stories'], ['c', 'compr_tab']].map(x => '<button class="' + (cur === x[0] ? 'on' : '') + '" data-act="rftab" data-v="' + x[0] + '">' + tt(x[1]) + '</button>').join('') + '</div>';
+  FR.readTabs = readTabs;
   function storyPage(P) {
     const st = P.story, n = P.page, N = st.pages.length, go = k => 'data-act="go" data-to="read/' + st.id + '~' + k + '"';
     (S().spos = S().spos || {})[st.id] = n; FR.save();
     const nav = '<div class="row spread pager">' + (n > 1 ? '<button class="btn" ' + go(n - 1) + '>← ' + tt('x_prev') + '</button>' : '<span></span>') + '<b>' + tt('page_n', { n, t: N }) + '</b>' +
-      (n < N ? '<button class="btn primary" ' + go(n + 1) + '>' + tt('x_next') + ' →</button>' : '<button class="btn primary" data-act="storydone" data-id="' + st.id + '">' + tt('st_finish') + '</button>') + '</div>';
+      (n < N ? '<button class="btn primary" ' + go(n + 1) + '>' + tt('x_next') + ' →</button>' : '<button class="btn primary" data-act="storydone" data-id="' + st.id + '">' + tt('st_finish') + '</button>') + '</div>' +
+      (n === N && FR.CR && FR.CR.some(c => c.id === 'st-' + st.id) ? '<div class="col"><button class="btn" data-act="go" data-to="read/cr:st-' + st.id + '">❓ ' + tt('compr_story') + '</button></div>' : '');
     return back('read', 'reading') + '<small class="eyebrow">' + st.icon + ' ' + bi(st.by) + ' · ' + st.lvl + '</small><h1 lang="fr">' + esc(st.t[0]) + '</h1>' +
       '<div class="bar thin"><i style="width:' + Math.round(n / N * 100) + '%"></i></div>' + rdControls(P) +
       '<p class="hint">' + tt('hint_swipe') + '</p><article class="passage book' + (showEn ? ' en' : '') + '" id="book" data-n="' + n + '" data-sid="' + st.id + '"><h2 class="pg-t" lang="fr">' + esc(P.t[0]) + '</h2><p class="mute pg-st">' + esc(P.t[1]) + '</p>' + sentHtml(P) + '<p class="pg-no">— ' + n + ' —</p></article>' + nav;
   }
   V.read = id => {
+    if (id === 'cr' || String(id || '').startsWith('cr:')) return FR.crView(id === 'cr' ? '' : id.slice(3));
     const P = id && FR.findText(id);
     if (P && P.story) return storyPage(P);
     if (P) {
@@ -430,12 +437,14 @@
         rdControls(P) + '<p class="hint">' + tt('hint_read') + '</p><article class="passage' + (showEn ? ' en' : '') + '">' + sentHtml(P) + '</article>' +
         '<div class="col">' + (done ? '<p class="note center">✓ ' + tt('read_done') + '</p>' : btn('mark_read', 'markread', 'data-id="' + P.id + '"', 'primary')) + '</div>';
     }
-    const tabs = '<div class="seg">' + [['p', 'passages_tab'], ['s', 'stories']].map(x => '<button class="' + (rf.tab === x[0] ? 'on' : '') + '" data-act="rftab" data-v="' + x[0] + '">' + tt(x[1]) + '</button>').join('') + '</div>';
+    if (rf.tab === 'c') rf.tab = 'p';
+    const tabs = readTabs(rf.tab);
     if (rf.tab === 's') {
       const pos = S().spos || {};
       return '<h1>' + tt('reading') + '</h1><p class="mute">' + tt('stories_sub') + '</p>' + tabs + '<div class="stagger">' + FR.STORIES.map(st => {
         const done = S().read['st:' + st.id], at = pos[st.id];
-        return '<button class="card passcard story-card" data-act="go" data-to="read/' + st.id + '~' + (at && !done ? at : 1) + '"><span class="st-icon">' + st.icon + '</span><div><small class="eyebrow">' + st.lvl + ' · ' + tt('st_pages', { n: st.pages.length }) + (done ? ' · ✓' : at ? ' · ' + tt('page_n', { n: at, t: st.pages.length }) : '') + '</small><h3 lang="fr">' + esc(st.t[0]) + '</h3><span class="mute">' + bi(st.by) + '</span></div></button>';
+        return '<button class="card passcard story-card" data-act="go" data-to="read/' + st.id + '~' + (at && !done ? at : 1) + '"><span class="st-icon">' + st.icon + '</span><div><small class="eyebrow">' + st.lvl + ' · ' + tt('st_pages', { n: st.pages.length }) + (done ? ' · ✓' : at ? ' · ' + tt('page_n', { n: at, t: st.pages.length }) : '') + '</small><h3 lang="fr">' + esc(st.t[0]) + '</h3><span class="mute">' + bi(st.by) + '</span></div></button>' +
+          (FR.CR && FR.CR.some(c => c.id === 'st-' + st.id) ? '<button class="link st-q" data-act="go" data-to="read/cr:st-' + st.id + '">❓ ' + tt('compr_story') + (S().cr && S().cr['st-' + st.id] ? ' · ✓ ' + Math.round(S().cr['st-' + st.id].best * 100) + '%' : '') + '</button>' : '');
       }).join('') + '</div>';
     }
     const list = FR.PASSAGES.filter(p => (rf.cat === 'all' || p.cat === rf.cat) && (rf.len === 'all' || p.len === rf.len));
@@ -444,7 +453,7 @@
       '<div class="seg">' + ['all', 's', 'm', 'l'].map(l => '<button class="' + (rf.len === l ? 'on' : '') + '" data-act="rflen" data-v="' + l + '">' + tt(l === 'all' ? 'f_all' : LEN[l]) + '</button>').join('') + '</div>' +
       '<div class="stagger">' + (list.length ? list.map(p => '<button class="card passcard" data-act="go" data-to="read/' + p.id + '"><small class="eyebrow">' + bi(FR.CATS[p.cat]) + ' · ' + tt(LEN[p.len]) + (S().read[p.id] ? ' · ✓' : '') + '</small><h3 lang="fr">' + esc(p.t[0]) + '</h3><span class="mute">' + esc(p.t[1]) + '</span></button>').join('') : '<p class="mute center">' + tt('no_results') + '</p>') + '</div>';
   };
-  A.rftab = d => { rf.tab = d.v; FR.refresh(true); };
+  A.rftab = d => { if (d.v === 'c') { FR.go('read/cr'); return; } rf.tab = d.v; if (document.body.dataset.r === 'read' && location.hash !== '#/read') FR.go('read'); else FR.refresh(true); };
   A.storydone = d => {
     const st = FR.STORIES.find(x => x.id === d.id); if (!st) return;
     const first = !S().read['st:' + st.id];
@@ -467,7 +476,7 @@
   };
   A.rfcat = d => { rf.cat = d.v; FR.refresh(); };
   A.rflen = d => { rf.len = d.v; FR.refresh(); };
-  FR.chg.showen = el => { showEn = el.checked; const a = document.querySelector('.passage'); if (a) a.classList.toggle('en', showEn); };
+  FR.chg.showen = el => { showEn = el.checked; document.querySelectorAll('.passage, .crq').forEach(a => a.classList.toggle('en', showEn)); };
   // Listening: one sentence at a time, with a pause between sentences and a longer one between paragraphs.
   let rd = null; // { id, i, paused, t }
   const paraSize = P => { const n = P.s.length; if (n < 6 || P.s[0][0][0] === '—') return 0; return Math.ceil(n / Math.round(n / 3.5)); };

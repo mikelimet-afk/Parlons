@@ -339,3 +339,8 @@ html.motion-calm .rv { opacity:1; transform:none; transition:none; }
 .az-l { min-width:30px; height:32px; padding:0 4px; border-radius:8px; border:1px solid var(--line); background:transparent; color:inherit; font:inherit; font-weight:600; font-size:13px; cursor:pointer; }
 .az-l.on { background:var(--acc); border-color:var(--acc); color:var(--acc-ink, #fff); }
 .az-l:disabled { opacity:.3; cursor:default; }
+/* B1 comprehension questions */
+.crq .tr { margin-bottom:4px; } .crq.en .tr { max-height:140px; opacity:1; margin-top:2px; }
+.crq-c { margin-top:12px; } .crq-q { font-weight:600; margin:6px 0 2px; } .crq-c .opts { margin-top:10px; }
+.crq-why { margin:10px 0 0; font-size:.95rem; line-height:1.45; } .crq-why.ok { color:var(--ok); } .crq-why.bad { color:var(--bad); }
+.st-q { display:block; margin:-4px 0 12px 8px; }

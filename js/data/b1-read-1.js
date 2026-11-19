@@ -1,0 +1,212 @@
+window.FR = window.FR || {}; FR.CR = FR.CR || [];
+// B1 comprehension texts, part 1 (docs/design-b1.md). Original texts; names and places are invented or generic.
+// q: [type, question (fr), question (en), options or null for true/false/not said, correct index, explanation, dictionary word to review if missed]
+FR.CR.push(
+{ id: 'horaire', kind: 'email', t: ['Horaire des Fêtes', 'Holiday schedule'], s: [
+  ['Objet : horaire des Fêtes et fermeture du 24 au 26 décembre', 'Subject: holiday schedule and closure from 24 to 26 December'],
+  ['Bonjour à toute l\'équipe,', 'Hello team,'],
+  ['Comme chaque année, le magasin sera fermé du 24 au 26 décembre.', 'As every year, the shop will be closed from 24 to 26 December.'],
+  ['Par contre, nous ouvrirons plus tôt la semaine précédente, à 8 h au lieu de 9 h, parce que les clients sont très nombreux.', 'On the other hand, we will open earlier the week before, at 8 a.m. instead of 9, because there are a lot of customers.'],
+  ['Je cherche donc deux personnes qui pourraient commencer à 7 h 30 pour préparer les caisses.', 'So I am looking for two people who could start at 7:30 to get the tills ready.'],
+  ['Ces heures seront payées une fois et demie le salaire habituel.', 'These hours will be paid at time and a half.'],
+  ['Si vous êtes intéressés, répondez-moi avant vendredi.', 'If you are interested, reply to me before Friday.'],
+  ['Ceux qui ont déjà demandé des congés pour le Nouvel An recevront une réponse la semaine prochaine.', 'Those who have already asked for time off for New Year will get an answer next week.'],
+  ['Merci encore pour votre travail cette année : grâce à vous, les ventes ont augmenté de 12 %.', 'Thank you again for your work this year: thanks to you, sales went up 12%.'],
+  ['Bonne fin de semaine, Nadia, gérante', 'Have a good weekend, Nadia, manager']], q: [
+  ['who', 'Qui écrit ce courriel, et à qui ?', 'Who is writing this email, and to whom?', ['la gérante, à ses employés', 'une cliente, au magasin', 'un employé, à sa patronne'], 0, 'It is signed "Nadia, gérante" and starts "Bonjour à toute l\'équipe".'],
+  ['main', 'Quel est le but principal du message ?', 'What is the main purpose of the message?', ['informer l\'équipe des horaires de décembre et demander des volontaires', 'annoncer la fermeture définitive du magasin', 'se plaindre des ventes de l\'année'], 0, 'It gives the holiday hours and looks for two people to start early.'],
+  ['detail', 'À quelle heure le magasin ouvrira-t-il la semaine avant Noël ?', 'What time will the shop open the week before Christmas?', ['8 h', '7 h 30', '9 h'], 0, '"À 8 h au lieu de 9 h." 7:30 is when the two volunteers would start.'],
+  ['word', 'Dans ce texte, « une fois et demie le salaire habituel » veut dire…', 'In this text, "une fois et demie le salaire habituel" means…', ['50 % de plus que d\'habitude', 'la moitié du salaire', 'le même salaire'], 0, 'One and a half times the normal pay: 50% more.', 'salaire'],
+  ['tf', 'Les ventes ont baissé cette année.', 'Sales went down this year.', null, 1, '"Les ventes ont augmenté de 12 %": they went up, so it is false.'],
+  ['tone', 'Comment est le ton de Nadia ?', 'What is Nadia\'s tone like?', ['professionnel et reconnaissant', 'fâché et sévère', 'triste et inquiet'], 0, 'She is clear about the schedule and thanks the team for its work.']] },
+
+{ id: 'collecte', kind: 'notice', t: ['Collectes d\'hiver', 'Winter collections'], s: [
+  ['AVIS AUX CITOYENS : nouvel horaire des collectes à partir du 1er décembre', 'NOTICE TO RESIDENTS: new collection schedule from 1 December'],
+  ['Pendant l\'hiver, la collecte du compost passera une fois toutes les deux semaines, le mercredi.', 'During winter, compost will be collected once every two weeks, on Wednesdays.'],
+  ['La collecte des ordures reste chaque semaine, le lundi.', 'Rubbish collection stays weekly, on Mondays.'],
+  ['Le recyclage, lui, ne change pas : un jeudi sur deux.', 'Recycling does not change: every other Thursday.'],
+  ['Placez vos bacs en bordure de rue la veille, après 19 h, ou avant 7 h le jour de la collecte.', 'Put your bins at the kerb the evening before, after 7 p.m., or before 7 a.m. on collection day.'],
+  ['Les bacs ne doivent pas être placés sur le trottoir, car ils gênent le déneigement.', 'Bins must not be put on the pavement, because they get in the way of snow clearing.'],
+  ['Si votre bac est enseveli sous la neige, il ne sera pas vidé.', 'If your bin is buried in snow, it will not be emptied.'],
+  ['Les sapins de Noël seront ramassés les 8 et 15 janvier. Retirez toutes les décorations.', 'Christmas trees will be picked up on 8 and 15 January. Remove all decorations.'],
+  ['Pour toute question, composez le 311 ou consultez le site de la Ville.', 'For any question, call 311 or visit the City\'s website.']], q: [
+  ['main', 'De quoi parle cet avis ?', 'What is this notice about?', ['des changements dans les collectes de déchets en hiver', 'de la fermeture des écoles à cause de la neige', 'd\'une nouvelle taxe sur le recyclage'], 0, 'It explains the winter schedule for compost, rubbish, recycling and trees.'],
+  ['detail', 'Qu\'est-ce qui change en hiver ?', 'What changes in winter?', ['la collecte du compost', 'la collecte des ordures', 'le recyclage'], 0, 'Compost goes to once every two weeks; rubbish and recycling stay the same.', 'compost'],
+  ['detail', 'Quand peut-on sortir son bac ?', 'When can you put your bin out?', ['la veille après 19 h, ou le jour même avant 7 h', 'n\'importe quand pendant la semaine', 'seulement le matin après 7 h'], 0, '"La veille, après 19 h, ou avant 7 h le jour de la collecte."'],
+  ['infer', 'Pourquoi ne faut-il pas mettre le bac sur le trottoir ?', 'Why must you not put the bin on the pavement?', ['Il empêche les machines de déneiger.', 'Il peut être volé.', 'Les piétons n\'aiment pas l\'odeur.'], 0, '"Ils gênent le déneigement": they block the snow-clearing machines.'],
+  ['tf', 'On peut laisser les décorations sur le sapin.', 'You can leave the decorations on the tree.', null, 1, '"Retirez toutes les décorations": false.'],
+  ['word', 'Un bac « enseveli sous la neige » est…', 'A bin "enseveli sous la neige" is…', ['complètement couvert de neige', 'mouillé par la pluie', 'vidé par la Ville'], 0, 'Enseveli = buried: you can no longer see it.']] },
+
+{ id: 'patinoires', kind: 'news', t: ['Des patinoires qui fondent', 'Rinks that melt'], s: [
+  ['Dans plusieurs villes du pays, les patinoires extérieures ont ouvert avec trois semaines de retard cette année.', 'In several cities across the country, outdoor rinks opened three weeks late this year.'],
+  ['En cause : un mois de décembre beaucoup plus doux que la normale.', 'The reason: a December much milder than normal.'],
+  ['Pour faire une bonne glace, il faut plusieurs nuits de suite à moins dix degrés, explique un employé municipal.', 'To make good ice, you need several nights in a row at minus ten degrees, explains a city worker.'],
+  ['« Cette année, on arrosait le soir et, le lendemain, tout avait fondu. »', '"This year, we would water the rink in the evening and by the next day it had all melted."'],
+  ['Les familles sont déçues, car le patin est une activité gratuite et populaire en hiver.', 'Families are disappointed, because skating is a free and popular winter activity.'],
+  ['Certaines villes ont donc investi dans des patinoires réfrigérées, qui restent ouvertes même quand il fait plus chaud.', 'Some cities have therefore invested in refrigerated rinks, which stay open even when it is warmer.'],
+  ['Ces installations coûtent cher : environ un million de dollars chacune.', 'These facilities are expensive: about a million dollars each.'],
+  ['Selon les scientifiques, la saison de patinage extérieur pourrait devenir de plus en plus courte.', 'According to scientists, the outdoor skating season could get shorter and shorter.'],
+  ['Un groupe de chercheurs demande d\'ailleurs aux citoyens de noter chaque jour l\'état de leur patinoire de quartier, pour mieux suivre le phénomène.', 'A group of researchers is also asking residents to record the state of their local rink every day, to track the trend better.']], q: [
+  ['main', 'Quel est le sujet principal de l\'article ?', 'What is the article mainly about?', ['l\'effet d\'hivers plus doux sur les patinoires extérieures', 'l\'ouverture d\'un nouveau stade de hockey', 'le prix des patins dans les magasins'], 0, 'Rinks open late because of milder weather, and the season may get shorter.'],
+  ['detail', 'Pourquoi les patinoires ont-elles ouvert en retard ?', 'Why did the rinks open late?', ['Il a fait trop doux en décembre.', 'Il manquait d\'employés.', 'Il a trop neigé.'], 0, '"Un mois de décembre beaucoup plus doux que la normale."'],
+  ['detail', 'Que faut-il pour faire une bonne glace ?', 'What do you need to make good ice?', ['plusieurs nuits de suite à moins dix degrés', 'beaucoup de neige', 'une seule nuit très froide'], 0, 'The city worker says several nights in a row at minus ten.'],
+  ['infer', 'Pourquoi toutes les villes n\'ont-elles pas de patinoire réfrigérée ?', 'Why don\'t all cities have a refrigerated rink?', ['Elles sont très chères.', 'Les familles ne les aiment pas.', 'Elles sont interdites.'], 0, 'About a million dollars each: not every city can afford one.'],
+  ['detail', 'Que demandent les chercheurs aux citoyens ?', 'What are the researchers asking residents to do?', ['noter chaque jour l\'état de leur patinoire', 'arroser la glace le soir', 'payer pour patiner'], 0, '"…noter chaque jour l\'état de leur patinoire de quartier."'],
+  ['word', 'Dans « En cause : un mois de décembre plus doux », « en cause » veut dire…', 'In "En cause : un mois de décembre plus doux", "en cause" means…', ['la raison est', 'malgré', 'à l\'avenir'], 0, 'En cause introduces the cause: the reason is.']] },
+
+{ id: 'telephones', kind: 'opinion', t: ['Les téléphones à l\'école : non merci', 'Phones at school: no thanks'], s: [
+  ['Depuis septembre, l\'école de mes enfants interdit les téléphones en classe et à la récréation.', 'Since September, my children\'s school has banned phones in class and at break.'],
+  ['Au début, j\'étais sceptique : je voulais que mes enfants puissent m\'appeler en cas de problème.', 'At first I was sceptical: I wanted my children to be able to call me if there was a problem.'],
+  ['Pourtant, après trois mois, je dois reconnaître que cette règle a changé beaucoup de choses.', 'Yet after three months, I have to admit that this rule has changed a lot.'],
+  ['Les enseignants disent que les élèves écoutent mieux et qu\'ils se concentrent plus longtemps.', 'Teachers say the pupils listen better and concentrate for longer.'],
+  ['À la récréation, les enfants jouent de nouveau au ballon au lieu de regarder des vidéos.', 'At break, the children are playing ball again instead of watching videos.'],
+  ['Ma fille, qui avait souvent mal à la tête, dort mieux, sans doute parce qu\'elle passe moins de temps devant un écran.', 'My daughter, who often had headaches, sleeps better, probably because she spends less time in front of a screen.'],
+  ['Bien sûr, certains parents ne sont pas d\'accord : ils trouvent que l\'école ne devrait pas décider à leur place.', 'Of course, some parents disagree: they think the school shouldn\'t decide for them.'],
+  ['Je comprends leur point de vue. Mais en cas d\'urgence, le secrétariat a un téléphone, comme à mon époque.', 'I understand their point of view. But in an emergency, the school office has a phone, like in my day.'],
+  ['À mon avis, cette règle protège nos enfants, et je souhaite que d\'autres écoles fassent de même.', 'In my opinion, this rule protects our children, and I hope other schools do the same.']], q: [
+  ['main', 'Quelle est l\'opinion de l\'auteur ?', 'What is the writer\'s opinion?', ['Il est pour l\'interdiction des téléphones à l\'école.', 'Il est contre l\'interdiction des téléphones.', 'Il n\'a pas encore d\'opinion.'], 0, '"À mon avis, cette règle protège nos enfants."'],
+  ['detail', 'Pourquoi l\'auteur était-il sceptique au début ?', 'Why was the writer sceptical at first?', ['Il voulait que ses enfants puissent l\'appeler.', 'Il pensait que les enseignants étaient contre.', 'Ses enfants n\'avaient pas de téléphone.'], 0, '"Je voulais que mes enfants puissent m\'appeler en cas de problème."'],
+  ['detail', 'Quel changement l\'auteur a-t-il remarqué chez sa fille ?', 'What change has the writer noticed in his daughter?', ['Elle dort mieux.', 'Elle a de meilleures notes.', 'Elle a plus d\'amis.'], 0, '"Ma fille… dort mieux."'],
+  ['who', 'Que pensent certains autres parents ?', 'What do some other parents think?', ['L\'école ne devrait pas décider à leur place.', 'La règle n\'est pas assez stricte.', 'Les enfants devraient avoir deux téléphones.'], 0, '"Ils trouvent que l\'école ne devrait pas décider à leur place."'],
+  ['infer', 'Que répond l\'auteur à ceux qui parlent des urgences ?', 'How does the writer answer those who worry about emergencies?', ['L\'école a un téléphone qu\'on peut utiliser.', 'Les urgences n\'arrivent jamais.', 'Les enfants peuvent garder leur téléphone dans leur sac.'], 0, '"En cas d\'urgence, le secrétariat a un téléphone."'],
+  ['word', '« Je dois reconnaître que… » veut dire…', '"Je dois reconnaître que…" means…', ['je dois admettre que…', 'je dois oublier que…', 'je refuse de dire que…'], 0, 'Reconnaître que = to admit that (here, after first doubting).']] },
+
+{ id: 'boulangere', kind: 'interview', t: ['« Mon pain raconte mon histoire »', '"My bread tells my story"'], s: [
+  ['Il y a quatre ans, Lina a ouvert une petite boulangerie dans un quartier de Moncton. Nous l\'avons rencontrée.', 'Four years ago, Lina opened a small bakery in a Moncton neighbourhood. We met her.'],
+  ['— Lina, vous étiez boulangère avant d\'arriver au Canada ?', '— Lina, were you a baker before you came to Canada?'],
+  ['— Pas du tout ! J\'étais professeure de chimie au Liban. Mais j\'ai toujours fait le pain à la maison, comme ma mère.', '— Not at all! I was a chemistry teacher in Lebanon. But I always made bread at home, like my mother.'],
+  ['— Pourquoi avez-vous changé de métier ?', '— Why did you change careers?'],
+  ['— Mon diplôme n\'était pas reconnu ici. J\'aurais dû refaire deux ans d\'études. J\'ai préféré suivre mon envie.', '— My degree wasn\'t recognised here. I would have had to study for two more years. I chose to follow what I wanted to do.'],
+  ['— Les débuts ont été difficiles ?', '— Was it hard at the start?'],
+  ['— Très ! La première année, je travaillais seize heures par jour et je ne gagnais presque rien.', '— Very! The first year, I worked sixteen hours a day and earned almost nothing.'],
+  ['— Et aujourd\'hui ?', '— And today?'],
+  ['— J\'ai trois employés. Mes clients adorent mes pains aux épices, mais ils m\'ont aussi appris à faire de la tarte au sucre !', '— I have three employees. My customers love my spiced breads, but they also taught me to make sugar pie!'],
+  ['— Votre rêve ?', '— Your dream?'],
+  ['— Ouvrir un petit café à côté, où les nouveaux arrivants pourraient pratiquer leur français autour d\'un croissant.', '— To open a small café next door, where newcomers could practise their French over a croissant.']], q: [
+  ['who', 'Quel était le métier de Lina avant le Canada ?', 'What was Lina\'s job before Canada?', ['professeure de chimie', 'boulangère', 'serveuse dans un café'], 0, '"J\'étais professeure de chimie au Liban."'],
+  ['detail', 'Pourquoi n\'a-t-elle pas continué son ancien métier ?', 'Why didn\'t she continue her old job?', ['Son diplôme n\'était pas reconnu.', 'Elle n\'aimait plus enseigner.', 'Elle ne parlait pas anglais.'], 0, '"Mon diplôme n\'était pas reconnu ici."', 'diplôme'],
+  ['detail', 'Comment était sa première année ?', 'What was her first year like?', ['Elle travaillait beaucoup et gagnait peu.', 'Elle avait déjà trois employés.', 'Elle était en vacances.'], 0, '"Seize heures par jour et je ne gagnais presque rien."'],
+  ['infer', 'Que montre la phrase sur la tarte au sucre ?', 'What does the sugar pie sentence show?', ['Elle apprend aussi de ses clients.', 'Elle n\'aime pas les desserts.', 'Ses clients n\'aiment pas son pain.'], 0, 'Her customers taught her a local recipe: the exchange goes both ways.'],
+  ['main', 'Quel est le rêve de Lina ?', 'What is Lina\'s dream?', ['ouvrir un café pour aider les nouveaux arrivants à pratiquer le français', 'retourner enseigner la chimie', 'vendre sa boulangerie'], 0, '"Ouvrir un petit café… où les nouveaux arrivants pourraient pratiquer leur français."'],
+  ['tf', 'Lina a fait deux ans d\'études au Canada.', 'Lina studied for two years in Canada.', null, 1, 'She says she would have had to, but chose not to: false.']] },
+
+{ id: 'mauvaisbus', kind: 'story', t: ['Le mauvais autobus', 'The wrong bus'], s: [
+  ['Amina était à Québec depuis seulement deux semaines quand elle a pris le mauvais autobus.', 'Amina had been in Quebec City only two weeks when she took the wrong bus.'],
+  ['Elle devait aller à son premier cours de francisation, mais l\'autobus est parti dans la direction opposée.', 'She was supposed to go to her first French class for newcomers, but the bus went the opposite way.'],
+  ['Quand elle a compris son erreur, elle était déjà loin du centre-ville.', 'By the time she realised her mistake, she was already far from downtown.'],
+  ['Un vieil homme, assis à côté d\'elle, a vu qu\'elle regardait son téléphone avec inquiétude.', 'An old man sitting next to her saw her looking at her phone anxiously.'],
+  ['« Vous êtes perdue ? » lui a-t-il demandé doucement.', '"Are you lost?" he asked her gently.'],
+  ['Amina a répondu avec les quelques mots qu\'elle connaissait. Il a souri et lui a expliqué, lentement, où descendre.', 'Amina answered with the few words she knew. He smiled and explained, slowly, where to get off.'],
+  ['Il s\'appelait Gilles. Il était chauffeur d\'autobus à la retraite et connaissait toutes les lignes par cœur.', 'His name was Gilles. He was a retired bus driver and knew every route by heart.'],
+  ['Il est même descendu avec elle pour l\'accompagner jusqu\'au bon arrêt.', 'He even got off with her to walk her to the right stop.'],
+  ['Amina est arrivée au cours avec quarante minutes de retard, mais avec une phrase nouvelle : « Je me suis trompée de bus. »', 'Amina arrived at class forty minutes late, but with a new sentence: "I took the wrong bus."'],
+  ['Depuis, chaque jeudi, elle prend un café avec Gilles. Il corrige son français, et elle lui apprend à cuisiner des plats de son pays.', 'Since then, every Thursday, she has coffee with Gilles. He corrects her French, and she teaches him to cook dishes from her country.']], q: [
+  ['main', 'Que raconte cette histoire ?', 'What is this story about?', ['une erreur qui donne naissance à une amitié', 'un accident d\'autobus', 'le premier emploi d\'Amina'], 0, 'Taking the wrong bus led Amina to meet Gilles, who became a friend.'],
+  ['who', 'Qui est Gilles ?', 'Who is Gilles?', ['un ancien chauffeur d\'autobus', 'le professeur d\'Amina', 'le voisin d\'Amina'], 0, '"Il était chauffeur d\'autobus à la retraite."'],
+  ['detail', 'Où Amina devait-elle aller ?', 'Where was Amina supposed to go?', ['à son premier cours de français', 'à un entretien d\'embauche', 'chez le médecin'], 0, '"Son premier cours de francisation."'],
+  ['infer', 'Pourquoi Gilles a-t-il pu aider Amina si facilement ?', 'Why could Gilles help Amina so easily?', ['Il connaissait toutes les lignes par cœur.', 'Il parlait la langue d\'Amina.', 'Il habitait à côté de l\'école.'], 0, 'As a former driver, he knew every route.'],
+  ['word', '« Je me suis trompée de bus » veut dire…', '"Je me suis trompée de bus" means…', ['J\'ai pris le mauvais bus.', 'J\'ai raté le bus.', 'J\'ai perdu mon billet de bus.'], 0, 'Se tromper de + noun = to take or pick the wrong one.', 'se tromper'],
+  ['detail', 'Que fait Amina pour Gilles aujourd\'hui ?', 'What does Amina do for Gilles now?', ['Elle lui apprend à cuisiner des plats de son pays.', 'Elle corrige son anglais.', 'Elle conduit sa voiture.'], 0, '"Elle lui apprend à cuisiner des plats de son pays."']] },
+
+{ id: 'bruit', kind: 'dialogue', t: ['Un voisin bruyant', 'A noisy neighbour'], s: [
+  ['— Bonsoir, excusez-moi de vous déranger. J\'habite juste en dessous, au 3B.', '— Good evening, sorry to bother you. I live just below, in 3B.'],
+  ['— Ah, bonsoir. Il y a un problème ?', '— Oh, good evening. Is there a problem?'],
+  ['— Un peu, oui. Depuis une semaine, j\'entends de la musique très tard, souvent après minuit.', '— A bit, yes. For a week now I\'ve been hearing music very late, often after midnight.'],
+  ['— Oh, je suis vraiment désolé. Je travaille de nuit et je ne me rendais pas compte de l\'heure.', '— Oh, I\'m really sorry. I work nights and I didn\'t realise what time it was.'],
+  ['— Je comprends. Moi, je commence à six heures du matin, alors j\'ai besoin de dormir.', '— I understand. I start at six in the morning, so I need to sleep.'],
+  ['— Bien sûr. Je vais mettre des écouteurs après dix heures du soir. Ça vous va ?', '— Of course. I\'ll wear headphones after ten at night. Is that all right?'],
+  ['— C\'est parfait, merci beaucoup. Et si jamais je fais du bruit le jour pendant que vous dormez, dites-le-moi.', '— That\'s perfect, thank you very much. And if I ever make noise in the day while you sleep, tell me.'],
+  ['— C\'est gentil. D\'ailleurs, votre aspirateur le samedi matin…', '— That\'s kind. Actually, your vacuum cleaner on Saturday mornings…'],
+  ['— Ha ! D\'accord, je le passerai l\'après-midi. Bonne nuit !', '— Ha! All right, I\'ll do it in the afternoon. Good night!']], q: [
+  ['who', 'Qui sont ces deux personnes ?', 'Who are these two people?', ['deux voisins du même immeuble', 'un propriétaire et son locataire', 'deux collègues de travail'], 0, '"J\'habite juste en dessous": they are neighbours.', 'voisin'],
+  ['main', 'Pourquoi la première personne frappe-t-elle à la porte ?', 'Why does the first person knock?', ['pour se plaindre de la musique la nuit', 'pour demander de l\'aide', 'pour inviter son voisin'], 0, '"J\'entends de la musique très tard, souvent après minuit."'],
+  ['detail', 'Pourquoi le voisin écoute-t-il de la musique si tard ?', 'Why does the neighbour play music so late?', ['Il travaille de nuit.', 'Il organise des fêtes.', 'Il n\'arrive pas à dormir.'], 0, '"Je travaille de nuit et je ne me rendais pas compte de l\'heure."'],
+  ['detail', 'Quelle solution propose-t-il ?', 'What solution does he suggest?', ['mettre des écouteurs après 22 h', 'déménager', 'arrêter la musique complètement'], 0, '"Je vais mettre des écouteurs après dix heures du soir."'],
+  ['infer', 'Que veut dire la remarque sur l\'aspirateur ?', 'What does the remark about the vacuum cleaner mean?', ['Le voisin du dessus est aussi dérangé par le bruit le samedi matin.', 'Il veut emprunter l\'aspirateur.', 'Il trouve l\'aspirateur trop vieux.'], 0, 'He works nights and sleeps in the morning, so the Saturday vacuuming wakes him.'],
+  ['tone', 'Comment se passe la conversation ?', 'How does the conversation go?', ['poliment, et ils trouvent un accord', 'mal, ils se disputent', 'ils appellent la police'], 0, 'Both apologise and offer a fix: it ends with "Bonne nuit !"']] },
+
+{ id: 'chauffage', kind: 'letter', t: ['Lettre au propriétaire', 'A letter to the landlord'], s: [
+  ['Monsieur Gagnon,', 'Mr Gagnon,'],
+  ['Je vous écris au sujet du chauffage de mon appartement, au 412 de la rue des Érables.', 'I am writing about the heating in my flat, at 412 rue des Érables.'],
+  ['Depuis le 10 novembre, la température dans le salon ne dépasse pas 16 degrés, même quand le thermostat est au maximum.', 'Since 10 November, the temperature in the living room has not gone above 16 degrees, even with the thermostat at maximum.'],
+  ['Je vous ai déjà téléphoné deux fois et laissé un message, mais personne n\'est venu.', 'I have already phoned you twice and left a message, but nobody has come.'],
+  ['J\'ai une fille de deux ans, et je dois utiliser un petit radiateur électrique, ce qui augmente beaucoup ma facture d\'électricité.', 'I have a two-year-old daughter, and I have to use a small electric heater, which is driving up my electricity bill.'],
+  ['Selon mon bail, le chauffage fait partie des services fournis par le propriétaire.', 'According to my lease, heating is one of the services provided by the landlord.'],
+  ['Je vous demande donc de faire réparer le système dans les plus brefs délais.', 'I therefore ask you to have the system repaired as soon as possible.'],
+  ['Si rien n\'est fait d\'ici le 1er décembre, je me verrai obligée de contacter le tribunal du logement.', 'If nothing is done by 1 December, I will have no choice but to contact the housing tribunal.'],
+  ['Je reste disponible tous les jours après 17 h pour laisser entrer un technicien.', 'I am available every day after 5 p.m. to let a technician in.'],
+  ['Veuillez agréer, Monsieur, mes salutations distinguées. Claire Morin, appartement 6', 'Yours sincerely, Claire Morin, flat 6']], q: [
+  ['main', 'Pourquoi Claire écrit-elle cette lettre ?', 'Why is Claire writing this letter?', ['pour demander la réparation du chauffage', 'pour annoncer son déménagement', 'pour demander une baisse de loyer'], 0, '"Je vous demande donc de faire réparer le système."', 'chauffage'],
+  ['who', 'Qui est M. Gagnon ?', 'Who is Mr Gagnon?', ['le propriétaire de l\'appartement', 'un technicien', 'le voisin de Claire'], 0, 'She refers to the lease and "les services fournis par le propriétaire".', 'propriétaire'],
+  ['detail', 'Qu\'est-ce que Claire a déjà fait ?', 'What has Claire already done?', ['Elle a téléphoné deux fois.', 'Elle a contacté le tribunal.', 'Elle a réparé le chauffage elle-même.'], 0, '"Je vous ai déjà téléphoné deux fois et laissé un message."'],
+  ['infer', 'Pourquoi parle-t-elle de sa facture d\'électricité ?', 'Why does she mention her electricity bill?', ['Le radiateur électrique lui coûte cher à cause du problème.', 'Elle veut que M. Gagnon paie toutes ses factures.', 'Elle a oublié de la payer.'], 0, 'The broken heating forces her to use an electric heater, which costs her money.'],
+  ['tone', 'Quel est le ton de la lettre ?', 'What is the tone of the letter?', ['poli mais ferme', 'amical et drôle', 'très agressif'], 0, 'Formal greetings, but a clear deadline and a warning about the tribunal.'],
+  ['tf', 'Claire est disponible le matin pour le technicien.', 'Claire is available in the morning for the technician.', null, 1, '"Disponible tous les jours après 17 h": false.']] },
+
+{ id: 'blogtest', kind: 'blog', t: ['Trois mois avant mon examen de français', 'Three months before my French exam'], s: [
+  ['Dans trois mois, je passe mon examen de français pour ma demande d\'immigration. Voici ma méthode, si elle peut aider quelqu\'un.', 'In three months I take my French exam for my immigration application. Here is my method, in case it helps someone.'],
+  ['D\'abord, j\'ai arrêté d\'apprendre des listes de mots par cœur. Je les oubliais en deux jours.', 'First, I stopped learning lists of words by heart. I forgot them within two days.'],
+  ['Maintenant, je lis un article court chaque matin, en notant seulement cinq expressions nouvelles.', 'Now I read a short article every morning, writing down only five new expressions.'],
+  ['Ensuite, j\'écoute la radio en préparant le souper. Au début, je ne comprenais presque rien ; aujourd\'hui, je suis les nouvelles.', 'Then I listen to the radio while making dinner. At first I understood almost nothing; now I can follow the news.'],
+  ['Pour l\'écrit, j\'écris un petit texte de 120 mots trois fois par semaine, et une amie québécoise le corrige.', 'For writing, I write a short 120-word text three times a week, and a Québécois friend corrects it.'],
+  ['Le plus difficile, c\'est l\'oral. Je me suis enregistré en train de parler, et j\'ai eu honte de mes hésitations.', 'The hardest part is speaking. I recorded myself talking, and I was embarrassed by how much I hesitated.'],
+  ['Alors je me suis inscrit à un groupe de conversation à la bibliothèque. On parle de tout, et personne ne juge.', 'So I joined a conversation group at the library. We talk about everything, and nobody judges.'],
+  ['Mon conseil : vingt minutes par jour, c\'est mieux que trois heures le dimanche.', 'My advice: twenty minutes a day is better than three hours on Sunday.'],
+  ['Je vous raconterai le résultat en mars. Croisez les doigts pour moi !', 'I\'ll tell you the result in March. Keep your fingers crossed for me!']], q: [
+  ['main', 'De quoi parle ce billet de blogue ?', 'What is this blog post about?', ['de la méthode de l\'auteur pour préparer un examen de français', 'des résultats de son examen', 'de son voyage au Québec'], 0, 'He describes how he is preparing, three months before the exam.'],
+  ['detail', 'Pourquoi a-t-il arrêté les listes de mots ?', 'Why did he stop using word lists?', ['Il oubliait les mots très vite.', 'Elles étaient trop chères.', 'Son professeur les interdisait.'], 0, '"Je les oubliais en deux jours."'],
+  ['detail', 'Qui corrige ses textes ?', 'Who corrects his texts?', ['une amie québécoise', 'un professeur en ligne', 'personne'], 0, '"Une amie québécoise le corrige."'],
+  ['infer', 'Pourquoi s\'est-il inscrit au groupe de conversation ?', 'Why did he join the conversation group?', ['Il voulait améliorer son oral, sa plus grande difficulté.', 'Il cherchait un emploi à la bibliothèque.', 'Son examen était le lendemain.'], 0, 'After hearing his hesitations, he looked for a place to practise speaking.', 's\'inscrire'],
+  ['main', 'Quel est son conseil principal ?', 'What is his main advice?', ['étudier un peu chaque jour', 'étudier trois heures le dimanche', 'apprendre des listes de mots'], 0, '"Vingt minutes par jour, c\'est mieux que trois heures le dimanche."'],
+  ['word', '« Croisez les doigts pour moi » veut dire…', '"Croisez les doigts pour moi" means…', ['Souhaitez-moi bonne chance.', 'Aidez-moi à écrire.', 'Ne dites rien.'], 0, 'Crossing your fingers is a wish for luck, in French as in English.']] },
+
+{ id: 'medecins', kind: 'news', t: ['Toujours pas de médecin de famille', 'Still no family doctor'], s: [
+  ['Plus d\'un habitant sur cinq de la région n\'a pas de médecin de famille, selon les chiffres publiés hier.', 'More than one resident in five in the region has no family doctor, according to figures published yesterday.'],
+  ['Certains attendent depuis plus de trois ans sur une liste d\'attente.', 'Some have been waiting for more than three years on a waiting list.'],
+  ['Sans médecin, beaucoup de patients vont aux urgences pour des problèmes simples, comme une infection ou un renouvellement d\'ordonnance.', 'Without a doctor, many patients go to the emergency room for simple problems, like an infection or a prescription renewal.'],
+  ['Résultat : les salles d\'urgence débordent, et l\'attente peut dépasser dix heures.', 'As a result, emergency rooms are overflowing, and the wait can be more than ten hours.'],
+  ['Pour réduire la pression, le gouvernement a annoncé que les pharmaciens pourront désormais traiter certaines infections.', 'To ease the pressure, the government announced that pharmacists will now be able to treat some infections.'],
+  ['Les infirmières praticiennes, qui peuvent faire des diagnostics, ouvriront aussi de nouvelles cliniques.', 'Nurse practitioners, who can make diagnoses, will also open new clinics.'],
+  ['L\'association des médecins salue ces mesures, mais elle rappelle qu\'il manque surtout des médecins dans les petites villes.', 'The doctors\' association welcomes these measures, but points out that the shortage is worst in small towns.'],
+  ['En effet, beaucoup de jeunes diplômés préfèrent travailler dans les grands centres.', 'Indeed, many young graduates prefer to work in big cities.'],
+  ['Le ministre promet un nouveau plan, avec des primes pour ceux qui s\'installeront en région.', 'The minister promises a new plan, with bonuses for those who settle outside the big cities.']], q: [
+  ['main', 'Quel problème l\'article décrit-il ?', 'What problem does the article describe?', ['le manque de médecins de famille', 'le prix des médicaments', 'la fermeture des pharmacies'], 0, 'One resident in five has no family doctor.'],
+  ['detail', 'Pourquoi les urgences sont-elles pleines ?', 'Why are emergency rooms full?', ['Des patients sans médecin y vont pour des problèmes simples.', 'Il y a eu un grave accident.', 'Les infirmières sont en grève.'], 0, '"Beaucoup de patients vont aux urgences pour des problèmes simples."', 'urgences'],
+  ['detail', 'Que pourront faire les pharmaciens ?', 'What will pharmacists be able to do?', ['traiter certaines infections', 'opérer les patients', 'remplacer les médecins de famille'], 0, '"Les pharmaciens pourront désormais traiter certaines infections."'],
+  ['who', 'Qui pense que le problème est plus grave dans les petites villes ?', 'Who thinks the problem is worse in small towns?', ['l\'association des médecins', 'les pharmaciens', 'les patients'], 0, '"Elle rappelle qu\'il manque surtout des médecins dans les petites villes."'],
+  ['infer', 'À quoi serviront les primes du ministre ?', 'What will the minister\'s bonuses be for?', ['à attirer des médecins hors des grandes villes', 'à baisser le prix des consultations', 'à construire des hôpitaux'], 0, 'Bonuses for those who settle "en région", where doctors are missing.'],
+  ['word', 'Dans ce texte, « désormais » veut dire…', 'In this text, "désormais" means…', ['à partir de maintenant', 'autrefois', 'jamais'], 0, 'Désormais = from now on.']] },
+
+{ id: 'campjour', kind: 'notice', t: ['On recrute : animateurs de camp de jour', 'Hiring: day camp counsellors'], s: [
+  ['La Ville de Saint-Laurent-des-Prés recrute 25 animatrices et animateurs pour son camp de jour estival.', 'The town of Saint-Laurent-des-Prés is hiring 25 counsellors for its summer day camp.'],
+  ['Durée : du 25 juin au 16 août, du lundi au vendredi, de 8 h à 16 h.', 'Dates: 25 June to 16 August, Monday to Friday, 8 a.m. to 4 p.m.'],
+  ['Tâches : organiser des jeux, des activités sportives et des sorties pour des enfants de 5 à 12 ans, et veiller à leur sécurité.', 'Duties: organise games, sports and outings for children aged 5 to 12, and keep them safe.'],
+  ['Exigences : avoir 16 ans ou plus, parler français, et être disponible pour toute la durée du camp.', 'Requirements: be 16 or over, speak French, and be available for the whole camp.'],
+  ['Un cours de premiers soins est un atout, mais il n\'est pas obligatoire : la Ville offre une formation gratuite en juin.', 'A first-aid course is an asset but not required: the town offers free training in June.'],
+  ['Salaire : 17,50 $ de l\'heure.', 'Pay: $17.50 an hour.'],
+  ['Pour postuler, envoyez votre CV et une courte lettre expliquant pourquoi vous aimez travailler avec les enfants.', 'To apply, send your CV and a short letter explaining why you like working with children.'],
+  ['Date limite : 15 mars. Seules les personnes retenues seront contactées.', 'Deadline: 15 March. Only shortlisted applicants will be contacted.']], q: [
+  ['main', 'Ce texte est…', 'This text is…', ['une offre d\'emploi', 'un programme d\'activités pour les parents', 'un article sur les vacances'], 0, 'It lists duties, requirements, pay and how to apply.', 'offre d\'emploi'],
+  ['detail', 'Pour quel âge sont les enfants du camp ?', 'How old are the children at the camp?', ['de 5 à 12 ans', 'de 16 ans et plus', 'de 2 à 5 ans'], 0, '"Des enfants de 5 à 12 ans." 16 is the minimum age to work there.'],
+  ['tf', 'Il faut absolument avoir un cours de premiers soins.', 'A first-aid course is absolutely required.', null, 1, '"Un atout, mais il n\'est pas obligatoire": false.'],
+  ['detail', 'Que faut-il envoyer pour postuler ?', 'What must you send to apply?', ['un CV et une courte lettre', 'seulement une photo', 'un certificat de premiers soins'], 0, '"Envoyez votre CV et une courte lettre."'],
+  ['word', 'Dans « un cours de premiers soins est un atout », « un atout » est…', 'In "un cours de premiers soins est un atout", "un atout" is…', ['un avantage', 'un problème', 'une obligation'], 0, 'Un atout = an advantage, a plus.'],
+  ['infer', 'Si on n\'a pas de nouvelles après le 15 mars, cela veut probablement dire…', 'If you hear nothing after 15 March, it probably means…', ['que sa candidature n\'a pas été retenue', 'qu\'on a obtenu le poste', 'que le camp est annulé'], 0, '"Seules les personnes retenues seront contactées": silence means no.']] },
+
+{ id: 'grandmere', kind: 'story', t: ['La lettre de grand-mère', 'Grandmother\'s letter'], s: [
+  ['En vidant la maison de sa grand-mère, Julien a trouvé une boîte en métal cachée au fond d\'une armoire.', 'While clearing out his grandmother\'s house, Julien found a metal box hidden at the back of a wardrobe.'],
+  ['Dedans, il y avait des photos en noir et blanc et une lettre jamais envoyée, datée de 1962.', 'Inside there were black-and-white photos and a letter that had never been sent, dated 1962.'],
+  ['La lettre était adressée à un certain Antoine. Julien n\'avait jamais entendu ce nom.', 'The letter was addressed to a certain Antoine. Julien had never heard the name.'],
+  ['Sa grand-mère y expliquait qu\'elle ne pouvait pas le suivre à Vancouver, parce que sa mère était malade.', 'In it his grandmother explained that she couldn\'t follow him to Vancouver, because her mother was ill.'],
+  ['« Je t\'attendrai », avait-elle écrit à la fin. Puis elle avait barré ces mots.', '"I will wait for you," she had written at the end. Then she had crossed those words out.'],
+  ['Deux ans plus tard, elle avait épousé le grand-père de Julien, un homme calme et généreux.', 'Two years later, she had married Julien\'s grandfather, a calm and generous man.'],
+  ['Julien a appelé sa mère pour lui lire la lettre. Il y a eu un long silence au téléphone.', 'Julien called his mother to read her the letter. There was a long silence on the line.'],
+  ['« Elle ne m\'en a jamais parlé, a fini par dire sa mère. Mais je comprends maintenant pourquoi elle pleurait en écoutant certaines chansons. »', '"She never told me about it," his mother said at last. "But now I understand why she cried when she listened to certain songs."'],
+  ['Julien a gardé la boîte. Il ne sait pas encore s\'il cherchera Antoine.', 'Julien kept the box. He doesn\'t know yet whether he will look for Antoine.']], q: [
+  ['who', 'Qui était probablement Antoine ?', 'Who was Antoine probably?', ['un amour de jeunesse de la grand-mère', 'le frère de Julien', 'le grand-père de Julien'], 0, 'A letter ending "Je t\'attendrai", before she married someone else: a young love.'],
+  ['detail', 'Pourquoi la grand-mère n\'est-elle pas partie à Vancouver ?', 'Why didn\'t the grandmother go to Vancouver?', ['Sa mère était malade.', 'Elle n\'aimait pas Antoine.', 'Elle avait déjà un emploi.'], 0, '"Elle ne pouvait pas le suivre à Vancouver, parce que sa mère était malade."'],
+  ['infer', 'Que montre le fait qu\'elle a barré « Je t\'attendrai » ?', 'What does crossing out "Je t\'attendrai" show?', ['Elle a compris qu\'elle ne pouvait pas faire cette promesse.', 'Elle avait fait une faute d\'orthographe.', 'Elle était en colère contre Julien.'], 0, 'She wrote the promise, then took it back: she knew she could not keep it.'],
+  ['who', 'Comment était le grand-père de Julien ?', 'What was Julien\'s grandfather like?', ['calme et généreux', 'jaloux et triste', 'riche et célèbre'], 0, '"Un homme calme et généreux."'],
+  ['infer', 'Qu\'est-ce que la mère de Julien comprend grâce à la lettre ?', 'What does Julien\'s mother understand thanks to the letter?', ['pourquoi sa mère pleurait en écoutant certaines chansons', 'pourquoi la maison était vendue', 'qui avait écrit les chansons'], 0, 'She links the old love story to her mother\'s tears over certain songs.'],
+  ['tf', 'Julien a décidé de chercher Antoine.', 'Julien has decided to look for Antoine.', null, 1, '"Il ne sait pas encore s\'il cherchera Antoine": he hasn\'t decided, so it is false.']] }
+);
