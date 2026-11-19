@@ -1,7 +1,7 @@
 // Interface strings added in v2 (merged into FR.S).
 Object.assign(FR.S, {
   // reading & stories
-  stories: ['Stories', 'Histoires'], passages_tab: ['Passages', 'Textes'], stories_sub: ['Long reads of ten pages: classic novels and history, retold in simple French.', 'De longues lectures de dix pages : romans classiques et histoire, racontés en français simple.'],
+  stories: ['Stories', 'Histoires'], passages_tab: ['Passages', 'Textes'], stories_sub: ['Long reads in simple French, about ten pages each: history, politics, mysteries and classic novels.', 'De longues lectures en français simple, d’une dizaine de pages : histoire, politique, mystères et romans classiques.'],
   st_pages: ['{n} pages', '{n} pages'], page_n: ['Page {n} / {t}', 'Page {n} / {t}'], st_finish: ['Finish the story', 'Terminer l\'histoire'], hint_swipe: ['Swipe or use the buttons to turn the page. Long-press a word to hear it.', 'Glissez ou utilisez les boutons pour tourner la page. Appui long sur un mot pour l\'entendre.'],
   // exam quit
   x_quit: ['Quit exam', 'Abandonner'], x_quit_t: ['Quit the mock exam?', 'Abandonner l\'examen blanc ?'], x_quit_d: ['Your {n} answers and the timer will be deleted, and you would need to start over from the beginning.', 'Vos {n} réponses et le chronomètre seront effacés : il faudra tout recommencer.'],
